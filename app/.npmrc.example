@@ -1,0 +1,4 @@
+@ifelse:registry=https://npm.ifelse.finance/
+//npm.ifelse.finance/:_authToken=${NPM_TOKEN}
+
+# Set NPM_TOKEN in your environment or CI secrets before installing @ifelse packages

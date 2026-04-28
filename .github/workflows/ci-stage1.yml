@@ -1,0 +1,27 @@
+name: CI Stage 1
+on:
+  pull_request:
+    branches: [ 'main' ]
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: pnpm/action-setup@v2
+        with:
+          node-version: '18'
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm --filter ./apps/web build
+      - name: Run unit tests
+        run: pnpm --filter ./apps/web test
+      - name: Run e2e (simple)
+        run: |
+          pnpm --filter ./apps/web mock:start &
+          pnpm --filter ./apps/web dev &
+          pnpm --filter ./apps/web e2e
