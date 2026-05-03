@@ -3,7 +3,10 @@
 Wersja: 1.1 | Data: 2026-05-04 | Autor: Agent-Programista
 
 ## Cel dokumentu
-Dostarcz zestaw jasnych, wykonawczych reguł dla autonomicznego agenta tworzącego kod aplikacji webowej, uwzględniających pracę równoległą frontend ↔ backend. Backend będzie realizowany w Supabase (Postgres + Auth + Storage). Agent działa iteracyjnie: najpierw mała partia frontendu (UI + mock API / contract), potem odpowiadająca jej mała partia backendu (Supabase schema, RLS, migracje).
+Zachowanie agenta przy niezgodnościach z planem:
+ - PRZED rozpoczęciem implementacji agent weryfikuje istnienie i kompletność `docs/plans/PLAN_<feature_key>.md`.
+ - Jeśli plan jest niekompletny lub pojawiają się krytyczne niejasności: agent generuje `PYTANIA / ZAŁOŻENIA` wewnątrz pliku planu i zatrzymuje dalsze prace do potwierdzenia przez człowieka.
+ - Agent NIE WPROWADZA zmian wykraczających poza zakres planu bez wyraźnej zgody Product Ownera.
 
 ## Zakres obowiązywania
 - Agent może tworzyć/edytować pliki źródłowe, migracje, testy, workflowy CI/CD i dokumentację techniczną tylko w dedykowanych branchach feature.
