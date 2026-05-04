@@ -1,0 +1,56 @@
+name: Supabase migrations
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - feature/stage1-backend
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    env:
+      PGSSLMODE: require
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Verify required secrets
+        run: |
+          if [ -z "${{ secrets.SUPABASE_DB_URL }}" ]; then
+            echo "Missing SUPABASE_DB_URL secret" >&2
+            exit 1
+          fi
+          echo "SUPABASE_DB_URL found"
+
+      - name: Backup remote DB (pg_dump)
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          mkdir -p backups
+          timestamp=$(date +'%Y%m%d_%H%M%S')
+          echo "Running pg_dump -> backups/supabase_backup_${timestamp}.dump"
+          pg_dump "$SUPABASE_DB_URL" -Fc -f "backups/supabase_backup_${timestamp}.dump"
+          ls -lh backups
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-backup
+          path: backups/*.dump
+
+      - name: Run Supabase migrations (db push)
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          npx --yes supabase db push --db-url "$SUPABASE_DB_URL" --debug
