@@ -65,14 +65,14 @@ psql "$SUPABASE_DB_URL" -f scripts/seeds/teardown.sql
 
 ## Automation & CI
 - Komendy:
-  - unit tests: `pnpm test`
+  - unit tests: `npm test`
   - e2e tests: `npx playwright test` (z opcją `--project=chromium`)
   - lokalny supabase: `npx supabase start`
   - push preview migrations: `npx supabase db push --db-url $SUPABASE_PREVIEW_DB_URL`
-  - quick coverage: `pnpm test -- --coverage --outputFile=reports/test-report.html`
+  - quick coverage: `npm test -- --coverage --outputFile=reports/test-report.html`
 
 - Co uruchamiać gdzie:
-  - PR: `pnpm lint && pnpm test` (unit) — obowiązkowe.
+  - PR: `npm run lint && npm test` (unit) — obowiązkowe.
   - Preview pipeline: integration tests + smoke E2E (wybrane scenariusze) + accessibility smoke.
   - Pre-merge (staging): pełne E2E suite.
 

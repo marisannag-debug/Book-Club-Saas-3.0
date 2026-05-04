@@ -14,11 +14,11 @@ date: 2026-05-04
 
 Poniżej zestawiono główne decyzje technologiczne wraz z alternatywami, plusami/minusami i wpływem na proces implementacji (tests/CI/Agent-programowanie).
 
-## 1) Frontend: Next.js 14 (App Router)
+## 1) Frontend: Next.js 16 (App Router)
 - Alternatywy: Remix, SvelteKit, Create React App
 - Dlaczego: doskonałe wsparcie dla SSR/SSG, App Router ułatwia modularny routing i integrację z Edge Functions. Dobre wsparcie na Vercel.
 - Trade-offs: większa złożoność wobec prostych SPA, wymaga disciplina w strukturze `app/`.
-- Impact: E2E na preview prostsze, CI musi uruchamiać `pnpm build`.
+-- Impact: E2E na preview prostsze, CI musi uruchamiać `npm run build`.
 
 ## 2) Backend: Supabase (Postgres + Auth + RLS)
 - Alternatywy: Firebase, Hasura, vernacular Node.js + Postgres
@@ -43,8 +43,8 @@ Poniżej zestawiono główne decyzje technologiczne wraz z alternatywami, plusam
 - Alternatywy: Cypress
 - Dlaczego: wsparcie multi-browser, dobry runner, integracja z axe-core dla accessibility.
 
-## 7) Package manager: pnpm
-- Zaleta: szybkie instalacje, deterministyczne lockfile, monorepo-friendly.
+## 7) Package manager: npm (package-lock.json)
+- Zaleta: szerokie wsparcie, repo zawiera `package-lock.json` — rekomendowane użycie `npm ci` w CI dla deterministycznych instalacji. Alternatywne menedżery pakietów mogą być używane, ale repo domyślnie korzysta z `npm`.
 
 ## 8) Hosting: Vercel
 - Alternatywy: Netlify, Render

@@ -12,23 +12,6 @@ date: 2026-05-04
 
 # Konwencje projektowe
 
-## 1. Struktura repo (zalecana)
-```
-/app
-  /apps
-    /web            # Next.js app (app router)
-  /packages
-    /ui             # wspólne komponenty
-    /lib            # shared helpers, types
-supabase/           # migrations, seeds, policies
-scripts/            # seeds, utilities
-docs/
-  /plans
-  /tech
-  /implemented
-tests/
-```
-
 ## 2. Nazewnictwo plików i komponentów
 - React components: `PascalCase.tsx` (np. `ClubCard.tsx`).
 - Filenames dla routingu/komponentów pomocniczych: `kebab-case.tsx` lub `kebab-case.ts` tam gdzie wygodne.
@@ -53,8 +36,8 @@ tests/
 - PR title: `feat(<scope>): short description` or `PLAN: <feature_key> — <short>` for plan-based PR.
 
 ## 6. PR checklist (obowiązkowe)
-- [ ] Lint green (`pnpm lint`)
-- [ ] Unit tests green (`pnpm test`)
+ - [ ] Lint green (`npm run lint`)
+ - [ ] Unit tests green (`npm test`)
 - [ ] Integration tests added/green (if backend changes)
 - [ ] E2E smoke (signup/create club/submit vote) for preview
 - [ ] Migration SQL + rollback included (if schema changed)

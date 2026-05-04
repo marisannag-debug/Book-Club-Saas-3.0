@@ -13,20 +13,21 @@ date: 2026-05-04
 # Stack technologiczny — BookClub Pro (MVP)
 
 ## 1. Ogólny zarys architektury
-- Frontend: Next.js 14 (App Router) + React 18 + TypeScript + Tailwind CSS
+ - Frontend: Next.js 16 (App Router) + React 19 + TypeScript + Tailwind CSS
 - Backend: Supabase (Postgres + Auth + RLS + Storage + Edge Functions) — serwer bezstanowy, głównie SQL + policies
 - API: REST/Edge Functions + opcjonalny GraphQL/Schema-first (jeśli potrzebne)
 - Validation & Types: Zod + TypeScript (schema-first for public boundaries)
 - Tests: Jest/Vitest (unit), integration tests (supertest/axios), Playwright (E2E)
 - CI/CD: GitHub Actions + Vercel (preview & prod)
-- Dev tooling: pnpm, pnpm-workspaces
+
+- Dev tooling: npm (workspaces supported)
 
 Prosty ASCII diagram:
 
 Frontend (Next.js) <---> Supabase (Postgres + Edge) <---> Storage / External APIs
 
 ## 2. Kluczowe technologie i jak ich używamy
-- Next.js 14 (App Router): routing, SSR/ISR kiedy wymagane, server components opcjonalnie.
+ - Next.js 16 (App Router): routing, SSR/ISR kiedy wymagane, server components opcjonalnie.
 - TypeScript: pełne `strict` w `tsconfig.json`, typy udostępniane między frontendem a backendem (packages lub `src/lib/types`).
 - Tailwind CSS: utility-first dla szybkiego prototypowania i spójnego designu.
 - Supabase:
@@ -37,16 +38,19 @@ Frontend (Next.js) <---> Supabase (Postgres + Edge) <---> Storage / External API
   - Edge Functions — server-side actions wymagające service key
 - Zod: walidacja i parsowanie danych na granicach API
 - Playwright: E2E tests i accessibility smoke (axe)
-- pnpm: menedżer pakietów (szybszy, deterministyczny)
+ - Package manager: `npm` (package-lock.json) — repo zawiera `package-lock.json`; używaj `npm ci` w CI dla deterministycznych instalacji. Alternatywne menedżery pakietów mogą być używane, ale dokumentacja i CI w tym repo domyślnie korzystają z `npm`.
 - Vercel: hosting frontendu (preview + production)
 
 ## 3. Komendy deweloperskie (szybkie)
 ```powershell
-# instalacja
-pnpm install
+# instalacja (dewelopersko)
+npm install
+
+# instalacja deterministyczna w CI
+npm ci
 
 # lokalny dev (frontend)
-pnpm dev
+npm run dev
 
 # lokalny supabase (jeśli używasz emulatora)
 npx supabase start
@@ -55,11 +59,11 @@ npx supabase start
 npx supabase db push --db-url "$SUPABASE_DB_URL"
 
 # testy
-pnpm test
+npm test
 npx playwright test
 
 # lint
-pnpm lint
+npm run lint
 ```
 
 ## 4. Kroki deploya (wybrane)

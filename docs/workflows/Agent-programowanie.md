@@ -23,6 +23,7 @@ Zachowanie agenta przy niezgodnościach z planem:
 7. Zalecane: mock API (MSW) i kontrakt (OpenAPI/GraphQL SDL/JSON schema) tworzony równolegle z komponentem frontendowym.
 8. Musi zapewnić podstawy accessibility (keyboard focus, aria-labels dla przycisków).
 9. Musi dokumentować zmiany w `docs/implemented` lub `docs/plans` i dołączać migration.sql.
+10. Zalecane jest przestrzeganie reguł z C:\Users\LENOVO\Desktop\Aplikacjoza\Book-Club-Saas-3.0\docs\tech
 
 ## Fazy pracy (paradigma front↔back)
 Każda funkcjonalność przechodzi przez następujące małe iteracje:
@@ -34,10 +35,16 @@ Scaffold (jednorazowo dla projektu)
 - Utwórz branch: `feature/scaffold` (lub `chore/scaffold` dla inicjalizacji).
 - Frontend scaffold:
 ```bash
-pnpm create next-app . -- --app --typescript
-pnpm install tailwindcss postcss autoprefixer
-pnpm install @supabase/supabase-js @supabase/auth-helpers-nextjs
-pnpm install zod msw
+# create app (use npx to pick latest create-next-app)
+npx create-next-app@latest . -- --app --typescript
+# install deps (use npm; project contains package-lock.json)
+npm install
+# dev dependencies
+npm install -D tailwindcss postcss autoprefixer
+# runtime deps
+npm install @supabase/supabase-js @supabase/auth-helpers-nextjs
+# validation & mocks
+npm install zod msw
 ```
 - Supabase lokalne środowisko:
 ```bash
@@ -65,14 +72,14 @@ Feature (parowane front/back)
    - Frontend e2e (Playwright) powinien działać przeciwko preview deployowi lub lokalnemu środowisku z uruchomionym supabase.
 6. PR policy: oba PR muszą mieć opis, link do kontraktu i wzajemne referencje; merge po green CI i akceptacji.
 
-Tests
-- Unit: `pnpm test` (Jest/Vitest)
+- Tests
+- Unit: `npm test` (Jest/Vitest)
 - Integration: uruchom lokalny Supabase (`npx supabase start`) i uruchom testy integracyjne.
 - E2E: `npx playwright test` — testy muszą mieć fixture do czyszczenia bazy między scenariuszami.
 
 CI
 - Workflow na PR:
-  - checkout -> pnpm install -> lint -> unit tests -> build frontend -> run integration tests (z opcjonalnym preview DB) -> start preview deploy
+  - checkout -> `npm ci` (or `npm install`) -> lint -> unit tests -> build frontend -> run integration tests (z opcjonalnym preview DB) -> start preview deploy
 - Jeśli chcesz uruchamiać migracje w preview, wykonuj je tylko gdy istnieje zmienna `SUPABASE_PREVIEW_DB_URL`.
 
 Przykładowy snippet GitHub Actions (skrócony):
@@ -84,10 +91,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: pnpm install
-      - run: pnpm lint
-      - run: pnpm test
-      - run: pnpm build
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
   preview-migrations:
     if: env.SUPABASE_PREVIEW_DB_URL
     runs-on: ubuntu-latest
@@ -189,7 +196,7 @@ ANALYTICS_URL=
 Wersja: 1.0 | Data: 2026-03-26 | Autor: Agent-Programista
 
 ## Cel dokumentu
-Dostarcz zestaw jasnych, wykonawczych reguł dla autonomicznego agenta piszącego kod aplikacji webowej (Next.js 14 + TypeScript + Tailwind). Reguły mają gwarantować bezpieczne, powtarzalne i testowalne wdrożenia.
+Dostarcz zestaw jasnych, wykonawczych reguł dla autonomicznego agenta piszącego kod aplikacji webowej (Next.js 16 + React 19 + TypeScript + Tailwind). Reguły mają gwarantować bezpieczne, powtarzalne i testowalne wdrożenia.
 
 ## Zakres obowiązywania
 Agent może tworzyć/pliki kodu, migracje, testy, workflowy CI/CD i deployować na Vercel tylko w utworzonych branchach feature/*. Nie wolno: commitować sekretów, pushować bez PR, zmieniać prod env bez akceptacji człowieka.
@@ -210,13 +217,13 @@ Agent może tworzyć/pliki kodu, migracje, testy, workflowy CI/CD i deployować 
 
 Scaffold
 - Krok 1: utwórz branch `feature/scaffold`.
-- Krok 2: `pnpm create next-app . -- --app --typescript`.
-- Krok 3: zainstaluj Tailwind, Zod.
+- Krok 2: `npx create-next-app@latest . -- --app --typescript`.
+- Krok 3: zainstaluj Tailwind i zależności: `npm install` + `npm install -D tailwindcss postcss autoprefixer`.
 
 Feature
 - Krok 1: utwórz feature branch `feature/<task>`.
 - Krok 2: dodaj pliki, migracje w `migrations/`.
-- Krok 3: lokalne testy: `pnpm test` i `pnpm lint`.
+- Krok 3: lokalne testy: `npm test` i `npm run lint`.
 
 Tests
 - Krok 1: napisz unit tests (Jest), integration tests (node fetch/supertest), E2E (Playwright).
@@ -235,7 +242,7 @@ Rollback
 - Przy problemach: revert PR w Vercel, rollback migracji SQL (patrz sekcja migrations).
 
 ## Code-style & commit rules
-- ESLint + Prettier (config standard). Używaj `pnpm lint -- --fix`.
+-- ESLint + Prettier (config standard). Używaj `npm run lint -- --fix`.
 - Commit messages examples:
   - `chore: init scaffold`
   - `feat(lib): add supabase client`
@@ -274,10 +281,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: pnpm install
-      - run: pnpm lint
-      - run: pnpm test
-      - run: pnpm build
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
 ```
 
 Preview deploy: Vercel integration (auto on PR). Production: merge to `main` + manual approval if DB migrations.

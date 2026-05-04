@@ -14,13 +14,13 @@ date: 2026-05-04
 
 ## 1. Formatter i lint
 - Prettier + ESLint (recommended configs). Uruchamiaj jako pre-commit hook i w CI.
-- `pnpm lint` → ESLint + TypeScript rules.
+ - `npm run lint` → ESLint + TypeScript rules.
 
 Przykładowe komendy:
 ```bash
-pnpm lint
-pnpm lint --fix
-pnpm format
+npm run lint
+npm run lint -- --fix
+npm run format
 ```
 
 ## 2. TypeScript policy
@@ -43,7 +43,7 @@ pnpm format
 
 Komendy:
 ```bash
-pnpm test
+npm test
 npx playwright test --reporter=list
 ```
 
@@ -55,7 +55,7 @@ npx playwright test --reporter=list
   - optional: preview e2e smoke green
 
 ## 7. Pre-commit i commit policy
-- Husky + lint-staged: uruchamiaj `pnpm lint --fix` i format przed commitem.
+ - Husky + lint-staged: uruchamiaj `npm run lint -- --fix` i format przed commitem.
 - commitlint: enforce Conventional Commits.
 
 ## 8. Observability i telemetry
