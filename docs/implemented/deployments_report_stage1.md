@@ -59,17 +59,13 @@ Cel: skondensowana dokumentacja dotychczasowych działań wdrożeniowych i stopn
 - Utworzyć PR dla migracji: https://github.com/marisannag-debug/Book-Club-Saas-3.0/pull/new/feature/db-migrations/init-users
 
 ## Ryzyka i uwagi
-- Brak migracji i rollbacków (supabase) — przed integracją backend należy dodać `supabase/migrations/` z SQL i rollback.
+- Migracje: kompletny zestaw migracji i rollbacków został dodany do `supabase/migrations/` i zacommitowany na branchu `feature/db-migrations/init-users`. Przed zastosowaniem na staging/prod należy wykonać backup (`pg_dump`) i przetestować na preview DB.
 - Brak E2E smoke tests i brak CI → PR nie ma gwarancji green CI. Zalecane szybkie dodanie prostego workflow PR.
 - Git zgłasza zalecenie maintenance (`git prune`) — warto wykonać przy większej ilości zmian.
-Uwagi z aktualnego wdrożenia:
-- Migracje zostały dodane lokalnie i zacommitowane; przed zastosowaniem na staging/prod należy wykonać backup i przetestować na preview DB.
 - Lokalny dev server został uruchomiony pomyślnie (http://localhost:3000) po naprawie zależności i konfiguracji turbopack.
 
 ## Rekomendacje (krótkie)
-1. Utworzyć branch `feature/stage1-backend` i dodać:
-   - `lib/supabase.server.ts` (placeholder server-side client)
-   - `supabase/migrations/000_init_users.sql` + rollback
+1. Zintegrować migracje: przenieść/merge'ować migracje z `feature/db-migrations/init-users` do docelowego backendowego branchu `feature/stage1-backend` (lub staging) i dodać `lib/supabase.server.ts` (server-side Supabase client) jeśli jeszcze nie istnieje.
 2. Dodać prosty workflow CI (lint -> test -> build) do `.github/workflows/`.
 3. Dodać unit tests dla `RegisterForm` i `LoginForm` oraz E2E smoke Playwright spec (`tests/e2e/smoke/auth.spec.ts`).
 4. Zaktualizować PR #2 opisem i linkami do tego raportu oraz do raportu z brakującymi etapami Stage 1.
