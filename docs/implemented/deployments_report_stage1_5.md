@@ -1,3 +1,48 @@
+# Raport implementacji — Stage 1.5
+
+Data: 2026-05-05
+
+Podsumowanie
+-----------
+Ten dokument podsumowuje wykonane prace związane ze Stage 1.5: przygotowaniem migracji bazy danych, integracją z Supabase, dodaniem CI do wykonywania backupu i uruchamiania migracji oraz stanem bieżących uruchomień CI.
+
+Co zostało wykonane
+-------------------
+- Utworzono SQL-owe migracje w katalogu `supabase/migrations` i skopiowano je do backendu.
+- Dodano serwerowy helper: `book_club_saas_3/lib/supabase.server.ts`.
+- Zaktualizowano `book_club_saas_3/.env.example` (przykładowe zmienne środowiskowe).
+- Dodano polityki RLS i pliki rollback dla migracji.
+- Dodano dokumentację i plany w `docs/` opisujące scope Stage 1.5.
+- Dodano workflow CI: `.github/workflows/supabase-migrations.yml` — tworzy backup (`pg_dump`) i uruchamia `npx supabase db push`.
+- Dodałem obsługę IPv4-fallback w workflow (rezolucja A-record, zastąpienie hosta adresem IPv4 gdy dostępne).
+- Ustawiono i dodano do repozytorium GitHub Secrets niezbędne zmienne: `SUPABASE_DB_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SUPABASE_URL`.
+- Workflow został dodany i zmergowany do `main` (PR #4).
+
+Stan uruchomień CI i napotkane problemy
+------------------------------------
+- Pierwsze uruchomienia zwróciły błąd połączenia na IPv6: `pg_dump` próbował łączyć się z adresem IPv6 i kończyło się to `Network is unreachable`.
+- Wprowadzono IPv4-fallback, ale kolejne runy również zakończyły się `failure` (trzeba sprawdzić szczegółowe logi kroków).
+- Kilka runów zwracało przez API `log not found` przy próbie pobrania logów przez `gh`, co utrudniło bezpośrednią diagnozę w CLI.
+
+Wstępna analiza
+---------------
+- Przyczyna: różne środowiska rozwiązują DNS różnie — niekiedy dostępny jest tylko rekord AAAA (IPv6) lub runner próbuje użyć IPv6 bez dostępnej ścieżki sieciowej.
+- Rozwiązanie częściowe: wymuszenie użycia adresu IPv4 (A record) w workflow; nadal potrzebne dodatkowe debugowanie.
+
+Zalecane kolejne kroki
+----------------------
+1. Dodać debug-echo w workflow (wydrukować wynik `dig +short A`, wartość `SUPABASE_DB_URL_IPV4`, oraz próbę `pg_isready`/`nc` na porcie 5432) — zapewni to jasny ślad w logach CI.
+2. Sprawdzić logi runów w Actions Web UI (gdy API zwraca `log not found`), ściągnąć pełne logi i zidentyfikować krok zawieszający się/kończący błędem.
+3. Jeśli problemy z routingiem IPv6 utrzymują się, rozważyć uruchomienie migracji z maszyny z pewnym IPv4 lub self-hosted runnera z dostępem IPv4.
+4. Po udanym wdrożeniu uzupełnić seedy i napisać testy integracyjne backendu.
+
+Referencje
+----------
+- Workflow: `.github/workflows/supabase-migrations.yml`
+- Migrations: `supabase/migrations/` oraz `book_club_saas_3/supabase/migrations/`
+- PR (workflow -> main): https://github.com/marisannag-debug/Book-Club-Saas-3.0/pull/4
+
+Autorem raportu jest zespół techniczny — dokument może być aktualizowany w miarę postępów.
 # Stage 1.5 — Wdrażanie backendu w Supabase — Raport postępów
 
 Data: 2026-05-04
@@ -109,6 +154,22 @@ pg_dump "$SUPABASE_DB_URL" > backup_$(date +%F).sql
 - [ ] Integracyjne testy: brak
 
 ---
+
+## Aktualizacja: 2026-05-05
+- 2026-05-05: Poprawka dotycząca workflow CI — plik
+  `.github/workflows/supabase-migrations.yml` był zapisany w formacie UTF-16 (z BOM),
+  co mogło powodować problemy z parsowaniem i zapisem logów przez GitHub Actions.
+  Plik został przekonwertowany do UTF-8 (bez BOM) przy zachowaniu istniejącej
+  logiki (IPv4-fallback, debug, upload-artifact).
+
+- Zmiana została zapisana w branchu `feature/stage1-backend` i została wypchnięta
+  do zdalnego repozytorium (commit + push wykonane przez agenta).
+
+- Rekomendacje po zmianie:
+  1. Wyzwolić workflow ręcznie (`workflow_dispatch`) i pobrać pełne logi z Actions Web UI.
+  2. Jeśli API nadal zwraca `log not found`, dodać krok w workflow, który
+     zapisze debug-output do pliku i wyśle go za pomocą `actions/upload-artifact` —
+     zapewni to dostępność diagnostyki niezależnie od problemów z API.
 
 Plik wygenerowany automatycznie na prośbę użytkownika. Jeśli chcesz, mogę:
 - uruchomić migracje teraz (wymaga potwierdzenia i backupu),
