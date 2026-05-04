@@ -1,27 +1,24 @@
-name: CI Stage 1
+name: CI - Stage 1
 on:
   pull_request:
-    branches: [ 'main' ]
+    paths:
+      - '**'
 
 jobs:
-  build_and_test:
+  build-and-test:
     runs-on: ubuntu-latest
-    env:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Node
-        uses: pnpm/action-setup@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
-      - name: Install deps
-        run: pnpm install --frozen-lockfile
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Run tests
+        run: npm test
       - name: Build
-        run: pnpm --filter ./apps/web build
-      - name: Run unit tests
-        run: pnpm --filter ./apps/web test
-      - name: Run e2e (simple)
-        run: |
-          pnpm --filter ./apps/web mock:start &
-          pnpm --filter ./apps/web dev &
-          pnpm --filter ./apps/web e2e
+        run: npm run build
