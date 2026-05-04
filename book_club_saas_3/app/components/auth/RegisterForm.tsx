@@ -24,8 +24,9 @@ export default function RegisterForm() {
 
   return (
     <form onSubmit={handleSubmit} className="max-w-md mx-auto p-4">
-      <label className="block mb-2">Email</label>
+      <label htmlFor="register-email" className="block mb-2">Email</label>
       <input
+        id="register-email"
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
@@ -33,8 +34,9 @@ export default function RegisterForm() {
         className="w-full p-2 border rounded mb-4"
       />
 
-      <label className="block mb-2">Hasło</label>
+      <label htmlFor="register-password" className="block mb-2">Hasło</label>
       <input
+        id="register-password"
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}

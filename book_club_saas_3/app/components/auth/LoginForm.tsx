@@ -24,8 +24,9 @@ export default function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="max-w-md mx-auto p-4">
-      <label className="block mb-2">Email</label>
+      <label htmlFor="login-email" className="block mb-2">Email</label>
       <input
+        id="login-email"
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
@@ -33,8 +34,9 @@ export default function LoginForm() {
         className="w-full p-2 border rounded mb-4"
       />
 
-      <label className="block mb-2">Hasło</label>
+      <label htmlFor="login-password" className="block mb-2">Hasło</label>
       <input
+        id="login-password"
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}

@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import Header from '../../book_club_saas_3/app/components/Header'
+import Header from '../../app/components/Header'
 
 describe('Header', () => {
   it('renders links', () => {

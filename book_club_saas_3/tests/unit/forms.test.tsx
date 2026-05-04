@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
-import RegisterForm from '../../book_club_saas_3/app/components/auth/RegisterForm'
-import LoginForm from '../../book_club_saas_3/app/components/auth/LoginForm'
+import RegisterForm from '../../app/components/auth/RegisterForm'
+import LoginForm from '../../app/components/auth/LoginForm'
 
 describe('Auth forms', () => {
   it('renders RegisterForm inputs and submit button', () => {
