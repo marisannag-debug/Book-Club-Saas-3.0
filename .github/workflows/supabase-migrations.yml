@@ -33,14 +33,46 @@ jobs:
           fi
           echo "SUPABASE_DB_URL found"
 
+      - name: Resolve IPv4 for DB host (IPv4 fallback)
+        run: |
+          # Install dnsutils for dig
+          sudo apt-get update
+          sudo apt-get install -y dnsutils
+
+          # Extract hostname from SUPABASE_DB_URL
+          host=$(python - <<'PY'
+import os,sys,urllib.parse
+u=os.environ.get('SUPABASE_DB_URL')
+if not u:
+    sys.exit(1)
+print(urllib.parse.urlparse(u).hostname)
+PY
+)
+          echo "Parsed host: $host"
+
+          # Try to get an IPv4 address (A record)
+          ipv4=$(dig +short A "$host" | head -n1)
+          if [ -n "$ipv4" ]; then
+            echo "Found IPv4: $ipv4"
+            # Replace hostname with IPv4 in the connection string
+            SUPABASE_DB_URL_IPV4=$(echo "$SUPABASE_DB_URL" | sed "s@$host@$ipv4@")
+            echo "SUPABASE_DB_URL_IPV4=$SUPABASE_DB_URL_IPV4" >> $GITHUB_ENV
+            echo "Using IPv4 for DB host in subsequent steps"
+          else
+            echo "No IPv4 A record found for $host; will use original SUPABASE_DB_URL"
+          fi
+
       - name: Backup remote DB (pg_dump)
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
+          # Use IPv4 fallback if available
+          DB_URL=${SUPABASE_DB_URL_IPV4:-$SUPABASE_DB_URL}
           mkdir -p backups
           timestamp=$(date +'%Y%m%d_%H%M%S')
+          echo "Using DB URL: $DB_URL"
           echo "Running pg_dump -> backups/supabase_backup_${timestamp}.dump"
-          pg_dump "$SUPABASE_DB_URL" -Fc -f "backups/supabase_backup_${timestamp}.dump"
+          pg_dump "$DB_URL" -Fc -f "backups/supabase_backup_${timestamp}.dump"
           ls -lh backups
 
       - name: Upload backup artifact
@@ -53,4 +85,6 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          npx --yes supabase db push --db-url "$SUPABASE_DB_URL" --debug
+          DB_URL=${SUPABASE_DB_URL_IPV4:-$SUPABASE_DB_URL}
+          echo "Running supabase db push against: $DB_URL"
+          npx --yes supabase db push --db-url "$DB_URL" --debug
