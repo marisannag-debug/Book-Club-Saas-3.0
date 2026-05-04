@@ -5,6 +5,15 @@ Ten katalog zawiera SQL migracje dla projektu Book-Club-Saas.
 Pliki:
 - `000_init_users.sql` — inicjalna migracja tworząca tabelę `users`.
 - `revert_000_init_users.sql` — rollback (usuwa tabelę `users`).
+Additionally included in this branch:
+- `001_create_clubs.sql` + `revert_001_create_clubs.sql`
+- `002_create_members.sql` + `revert_002_create_members.sql`
+- `003_create_books.sql` + `revert_003_create_books.sql`
+- `004_create_votes.sql` + `revert_004_create_votes.sql`
+- `005_create_vote_options.sql` + `revert_005_create_vote_options.sql`
+- `006_create_submissions.sql` + `revert_006_create_submissions.sql`
+- `007_create_meetings.sql` + `revert_007_create_meetings.sql`
+- `008_create_messages.sql` + `revert_008_create_messages.sql`
 
 Zasady i instrukcje:
 
@@ -35,6 +44,8 @@ psql "$DATABASE_URL" -f ./supabase/migrations/000_init_users.sql
 ```bash
 psql "$DATABASE_URL" -f ./supabase/migrations/revert_000_init_users.sql
 ```
+
+Uwaga: rollbacky dostarczone dla każdej migracji jako `revert_*.sql` — uruchamiaj w odwrotnej kolejności migracji (najpierw revert_008... potem revert_000...).
 
 5) Reguły bezpieczeństwa:
 - Nigdy nie commituj sekretów (`SUPABASE_SERVICE_ROLE_KEY`) do repo.
