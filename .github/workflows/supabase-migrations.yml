@@ -35,19 +35,13 @@ jobs:
 
       - name: Resolve IPv4 for DB host (IPv4 fallback)
         run: |
-          # Install dnsutils for dig
           sudo apt-get update
           sudo apt-get install -y dnsutils
-
-            # Extract hostname from SUPABASE_DB_URL
-            host=$(python -c "import os,urllib.parse;u=os.environ.get('SUPABASE_DB_URL','');print(urllib.parse.urlparse(u).hostname or '')")
+          host=$(python -c "import os,urllib.parse;u=os.environ.get('SUPABASE_DB_URL','');print(urllib.parse.urlparse(u).hostname or '')")
           echo "Parsed host: $host"
-
-          # Try to get an IPv4 address (A record)
           ipv4=$(dig +short A "$host" | head -n1)
           if [ -n "$ipv4" ]; then
             echo "Found IPv4: $ipv4"
-            # Replace hostname with IPv4 in the connection string
             SUPABASE_DB_URL_IPV4=$(echo "$SUPABASE_DB_URL" | sed "s@$host@$ipv4@")
             echo "SUPABASE_DB_URL_IPV4=$SUPABASE_DB_URL_IPV4" >> $GITHUB_ENV
             echo "Using IPv4 for DB host in subsequent steps"
@@ -59,8 +53,7 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-            # Re-parse host from SUPABASE_DB_URL so it's available in this step
-            host=$(python -c "import os,urllib.parse;u=os.environ.get('SUPABASE_DB_URL','');print(urllib.parse.urlparse(u).hostname or '')")
+          host=$(python -c "import os,urllib.parse;u=os.environ.get('SUPABASE_DB_URL','');print(urllib.parse.urlparse(u).hostname or '')")
           echo "Parsed host: $host"
           echo "dig A records for $host:"
           dig +short A "$host" || true
@@ -68,7 +61,6 @@ jobs:
           dig +short AAAA "$host" || true
           echo "SUPABASE_DB_URL_IPV4 (from GITHUB_ENV): $SUPABASE_DB_URL_IPV4"
           if [ -n "$SUPABASE_DB_URL_IPV4" ]; then
-            # extract hostname/IP from connection string
             ip=$(python -c "import os,urllib.parse;u=os.environ.get('SUPABASE_DB_URL_IPV4','');print(urllib.parse.urlparse(u).hostname or '')")
             echo "Testing TCP 5432 to $ip (timeout 5s)"
             if bash -c "timeout 5 bash -c '</dev/tcp/$ip/5432' 2>/dev/null"; then
@@ -84,7 +76,6 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          # Use IPv4 fallback if available
           DB_URL=${SUPABASE_DB_URL_IPV4:-$SUPABASE_DB_URL}
           mkdir -p backups
           timestamp=$(date +'%Y%m%d_%H%M%S')
