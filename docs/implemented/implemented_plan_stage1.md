@@ -15,55 +15,43 @@ status: partial
 
 # Podsumowanie
 
-Krótki opis zgodności implementacji z planem
-
-Większość frontendowych placeholderów dla Stage 1 jest zaimplementowana: layout, `Header`, `Hero`, `FeatureCards`, strony `/register` i `/login` oraz formularze z mockowaną logiką. Brakuje kilku dokumentów i testów (opis poniżej). Migracje SQL zostały dodane, ale są trzymane w dedykowanym branchu migracji.
+Stage 1 jest w dużej mierze domknięty po stronie UI i placeholderów backendowych. Strona główna renderuje już BookClubowy landing z `Header`, `Hero`, `FeatureCards` i `Footer`, a `/register` oraz `/login` mają działające formularze z mockowaną logiką. Produkcyjny build przechodzi bez błędów.
 
 ## Zmiany w kodzie (zaimplementowane)
 
-- `book_club_saas_3/app/layout.tsx` — podstawowy `RootLayout` (fonty, globals.css).
-- `book_club_saas_3/app/page.tsx` — aktualnie zawiera domyślny szablon Next.js (do podmiany na BookClub homepage).
-- `book_club_saas_3/app/components/Header.tsx` — zaimplementowany (nav: Home / Login / Register).
-- `book_club_saas_3/app/components/Hero.tsx` — zaimplementowany.
-- `book_club_saas_3/app/components/FeatureCards.tsx` — zaimplementowany.
-- `book_club_saas_3/app/components/auth/RegisterForm.tsx` — formularz klienta (mock register).
-- `book_club_saas_3/app/components/auth/LoginForm.tsx` — formularz klienta (mock login).
+- `book_club_saas_3/app/layout.tsx` — podstawowy `RootLayout` z globalnymi stylami.
+- `book_club_saas_3/app/page.tsx` — strona główna BookClub z `Header`, `Hero`, `FeatureCards` i `Footer`.
+- `book_club_saas_3/app/components/Header.tsx` — nawigacja z linkami `Home / Login / Register`.
+- `book_club_saas_3/app/components/Hero.tsx` — sekcja hero.
+- `book_club_saas_3/app/components/FeatureCards.tsx` — sekcja kart funkcji.
+- `book_club_saas_3/app/components/Footer.tsx` — stopka aplikacji.
+- `book_club_saas_3/app/components/auth/RegisterForm.tsx` — formularz klienta rejestracji z mockowaną logiką.
+- `book_club_saas_3/app/components/auth/LoginForm.tsx` — formularz klienta logowania z mockowaną logiką.
 - `book_club_saas_3/app/register/page.tsx` — strona rejestracji.
 - `book_club_saas_3/app/login/page.tsx` — strona logowania.
-- `book_club_saas_3/lib/auth.ts` — placeholdery `registerUser`/`loginUser` (mock).
+- `book_club_saas_3/lib/auth.ts` — wspólny placeholder auth helperów.
 - `book_club_saas_3/lib/supabase.server.ts` — serwerowy placeholder klienta Supabase.
 
-Uwaga: `Footer.tsx` nie istnieje w katalogu `app/components` (widoczny jedynie w build-cache `.next`), a `book_club_saas_3/app/page.tsx` nadal wykorzystuje domyślny content Next.js. Aby strona główna BookClub wyświetlała się domyślnie, należy podmienić `app/page.tsx` (akcja zaplanowana w Next steps).
+Build został zweryfikowany lokalnie i przechodzi poprawnie po tych zmianach.
 
 ## Migracje
 
-Migracje SQL zostały przygotowane i występują w repozytorium (zestaw migracji znajduje się na branchu `feature/db-migrations/init-users` oraz w bieżącej gałęzi roboczej `ci/run-migrations-init-users`):
+W repo są obecnie dwie migracje bazowe oraz ich rollbacki:
 
 - `supabase/migrations/000_init_users.sql`
-- `supabase/migrations/001_create_clubs.sql`
-- `supabase/migrations/002_create_members.sql`
-- `supabase/migrations/003_create_books.sql`
-- `supabase/migrations/004_create_votes.sql`
-- `supabase/migrations/005_create_vote_options.sql`
-- `supabase/migrations/006_create_submissions.sql`
-- `supabase/migrations/007_create_meetings.sql`
-- `supabase/migrations/008_create_messages.sql`
+- `supabase/migrations/000_init_users_rollback.sql`
+- `supabase/migrations/001_enable_rls_and_policies.sql`
+- `supabase/migrations/001_enable_rls_and_policies_rollback.sql`
 
-Rollbacky (revert_*). Komenda do uruchomienia (lokalnie / w CI):
-```bash
-# Backup:
-pg_dump --format=custom -f backup.dump "$SUPABASE_DB_URL"
-# Apply migrations (supabase CLI):
-npx supabase db push --db-url "$SUPABASE_DB_URL"
-```
+Brakuje jeszcze dedykowanego `supabase/migrations/README.md` z opisem sposobu uruchamiania tych migracji.
 
 ## Testy
 
-- Unit: brak plików testowych w `tests/unit/` — do zaimplementowania (propozycja: `Vitest` + `@testing-library/react`).
-- Integration: brak (brak serwisów testowych lub fixture do preview DB).
-- E2E: brak testów Playwright w `tests/e2e/` w repo — należy dodać smoke spec: render `/`, `/register`, `/login`.
+- Unit: brak plików testowych w `tests/unit/`.
+- Integration: brak.
+- E2E: brak testów Playwright w `tests/e2e/`.
 
-Obecnie uruchomienie dev servera (`npm run dev` w `book_club_saas_3`) działa i serwuje aplikację, jednak strona główna pokazuje domyślny szablon Next.js zamiast BookClub UI (z powodu treści w `app/page.tsx`).
+Obecnie `npm run dev` działa poprawnie, a strona główna renderuje już BookClub UI.
 
 ## Acceptance E2E (krok po kroku)
 
@@ -71,24 +59,20 @@ Obecnie uruchomienie dev servera (`npm run dev` w `book_club_saas_3`) działa i 
 ```bash
 npm install
 npm run dev
-# Otwórz http://localhost:3000 — oczekiwane: strona BookClub z Header + Hero + FeatureCards
+# Otwórz http://localhost:3000 — oczekiwane: strona BookClub z Header + Hero + FeatureCards + Footer
 ```
 
-Aktualny rezultat: serwer startuje, ale strona główna renderuje domyślny szablon Next.js (tekst "To get started, edit the page.tsx file.").
+Aktualny rezultat: serwer startuje i renderuje stronę główną BookClub.
 
 ## Deviations / PYTANIA
 
-- `app/page.tsx` nadal zawiera domyślny content Next.js — został pominięty krok podmiany strony głównej w implementacji. PROPOZYCJA: zastąpić zawartość `app/page.tsx` komponentami `Header`, `Hero`, `FeatureCards` i dodać `Footer.tsx`.
-- `.env.example` w `book_club_saas_3` nie istnieje (w planie był wymagany). PROPOZYCJA: dodać `book_club_saas_3/.env.example` z minimalnymi zmiennymi.
-- Brak testów unit/e2e — PROPOZYCJA: dodać `tests/unit/header.test.tsx` i prosty Playwright smoke spec.
-
-Pytanie: czy chcesz, żeby agent automatycznie podmienił `app/page.tsx` i utworzył `Footer.tsx` oraz usunął domyślne obrazy (`next.svg`, `vercel.svg`) — po tej zmianie uruchomię dev server i potwierdzę wynik.
+- `.env.example` nadal nie istnieje.
+- Brakuje `supabase/migrations/README.md`.
+- Brak testów unit i E2E.
 
 ## Notes / Next steps
 
-1. Podmiana `book_club_saas_3/app/page.tsx` na BookClub homepage (Header + Hero + FeatureCards + Footer). — mogę to wykonać i zrestartować dev server.
-2. Utworzyć `book_club_saas_3/.env.example` i usunąć lokalne `book_club_saas_3/.env` z repo jeśli występuje.
-3. Dodać podstawowe unit tests (Vitest) i prosty Playwright smoke test.
-4. Dokumentować zmiany i otworzyć PR z opisem: "chore(stage1): scaffold file-structure and basic UI".
-
-W razie potwierdzenia wykonam kroki 1–2 i zaktualizuję ten raport o wynik.
+1. Utworzyć `book_club_saas_3/.env.example` z minimalnymi zmiennymi środowiskowymi.
+2. Dodać `supabase/migrations/README.md` z krótką instrukcją dla migracji.
+3. Dodać podstawowe testy unit i smoke E2E.
+4. Uzupełnić dokumentację README zgodnie z planem.
