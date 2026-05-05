@@ -1,0 +1,14 @@
+name: Validate Actions parsing
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - feature/stage1-backend
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print hello
+        run: echo "workflow parse test"
