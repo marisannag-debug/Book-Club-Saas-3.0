@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Book Club SaaS — Instrukcja uruchomienia lokalnego
 
-## Getting Started
+Poniższe instrukcje opisują jak uruchomić frontend aplikacji BookClub lokalnie na maszynie deweloperskiej (Windows). Zakładają, że projekt został sklonowany i znajdujesz się w głównym katalogu repozytorium.
 
-First, run the development server:
+Przykładowe, przetestowane środowisko:
+- Node: v24.12.0
+- npm: 11.6.2
+- Next.js: 16.2.4 (dev używa Turbopack)
 
-```bash
+1) Zainstaluj zależności i uruchom dev-server dla subprojeku `book_club_saas_3`:
+
+```powershell
+cd book_club_saas_3
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Po uruchomieniu Next dev powinien wyświetlić informacje podobne do:
+- Local: http://localhost:3000
+- Network: http://<twoje-lokalne-ip>:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+2) Otwórz przeglądarkę:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```powershell
+# W PowerShell
+Start-Process 'http://localhost:3000'
+# lub jeśli Local nie działa, użyj pokazanej w logach adresacji Network:
+Start-Process 'http://<twoje-lokalne-ip>:3000'
+```
 
-## Learn More
+3) Jeśli nie masz pliku `.env`, skopiuj przykładowy plik i uzupełnij wartości (nie commituj sekretów):
 
-To learn more about Next.js, take a look at the following resources:
+```powershell
+cd book_club_saas_3
+copy .env.example .env
+# edytuj .env i wstaw wartości (SUPABASE_URL, SUPABASE_ANON_KEY / SERVICE_ROLE_KEY, itp.)
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4) Szybkie debugowanie problemów:
+- Błąd „Nie można połączyć się z serwerem zdalnym” / `ERR_CONNECTION_REFUSED` — dev-server nie działał w momencie żądania. Uruchom `npm run dev` i sprawdź, czy pojawia się `Local: http://localhost:3000`.
+- Jeśli `Local` pokazuje IP sieciowe (np. `http://10.0.2.211:3000`) — otwórz tę adresację zamiast `localhost`.
+- Sprawdź, czy proces Node nasłuchuje na porcie 3000:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```powershell
+Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue
+# lub:
+netstat -aon | Select-String ':3000'
+```
 
-## Deploy on Vercel
+- Jeśli port jest zajęty, znajdź PID i zabij proces:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```powershell
+# jeśli masz PID np. 1234:
+taskkill /PID 1234 /F
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Ostrzeżenie w logach o `experimental.turbopack` w `next.config.js` to informacja — nie blokuje uruchomienia.
+
+5) Uruchamianie migracji (informacja):
+- Najpierw wykonaj backup bazy:
+
+```bash
+pg_dump --format=custom -f backup.dump "$SUPABASE_DB_URL"
+```
+
+- Aby zastosować migracje za pomocą supabase CLI (wymaga zainstalowanego `supabase` lub użycia `npx`):
+
+```bash
+npx supabase db push --db-url "$SUPABASE_DB_URL"
+```
+
+Uwaga: uruchamianie migracji wymaga ustawionych zmiennych środowiskowych (np. `SUPABASE_DB_URL`) oraz odpowiednich sekretów w CI.
+
+6) Najważniejsze pliki i lokalizacje:
+- Strona główna: `book_club_saas_3/app/page.tsx` (renderuje `Header`, `Hero`, `FeatureCards`, `Footer`).
+- Komponenty UI: `book_club_saas_3/app/components/`
+- Przykładowe zmienne środowiskowe: `book_club_saas_3/.env.example`
+
+7) Polecenia skrótowe (podsumowanie):
+
+```powershell
+cd book_club_saas_3
+npm install
+npm run dev
+Start-Process 'http://localhost:3000'
+```
+
+Jeśli chcesz, mogę również:
+- dodać w root `package.json` skrypt `dev:bookclub` uruchamiający powyższe kroki,
+- przygotować szczegółową instrukcję uruchamiania migracji i tworzenia preview DB.
+
+Plik zaktualizowano na podstawie ostatniej próby uruchomienia dev-servera i logów Next.js.
+
