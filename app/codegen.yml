@@ -1,7 +1,0 @@
-schema: ./mock-api/schema.graphql
-generates:
-  apps/web/src/__generated__/graphql.ts:
-    plugins:
-      - typescript
-      - typescript-operations
-      - typescript-react-apollo
