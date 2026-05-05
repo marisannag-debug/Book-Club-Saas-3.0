@@ -1,4 +1,0 @@
-type User { id: ID!, email: String!, name: String }
-type Club { id: ID!, name: String!, ownerId: ID! }
-type Query { me: User, clubs: [Club!]! }
-type Mutation { createClub(name: String!): Club! }
