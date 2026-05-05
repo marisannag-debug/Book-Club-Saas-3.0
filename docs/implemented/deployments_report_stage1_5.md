@@ -175,3 +175,25 @@ Plik wygenerowany automatycznie na prośbę użytkownika. Jeśli chcesz, mogę:
 - uruchomić migracje teraz (wymaga potwierdzenia i backupu),
 - dodać seed migrations,
 - dodać szablon CI do `.github/workflows/` dla migracji preview.
+
+## Dodatkowa aktualizacja: 2026-05-05 — cofnięcie backendu i backup
+
+- 2026-05-05: W odpowiedzi na żądanie cofnięcia zmian backendowych, agent przywrócił
+  zawartość gałęzi `feature/stage1-backend` do stanu `main`, jednocześnie zachowując
+  raporty i pliki związane z Supabase w osobnym backupie. Operacja została wykonana z
+  poszanowaniem historii — nic nie zostało trwale usunięte.
+
+- Utworzone i wypchnięte branchy:
+  - `backup/feature/stage1-backend-bd74f6d` — backup zawierający wcześniejsze zmiany (commit `bd74f6d`).
+  - `feature/stage1-backend` — zaktualizowany (zresetowany do `main`, commit cofający: `4db670e`).
+
+- Link do utworzenia PR z backupem (przegląd/przywrócenie zmian):
+  https://github.com/marisannag-debug/Book-Club-Saas-3.0/pull/new/backup/feature/stage1-backend-bd74f6d
+
+- Rekomendowane następne kroki:
+  1. Przejrzeć backup i przywrócić wybrane pliki/commity (np. `git checkout backup/... -- <ścieżka>` lub `git cherry-pick <sha>`).
+  2. Otworzyć PR z backupem, jeśli chcesz przeprowadzić code review przed ponownym połączeniem.
+  3. Nie usuwać backupu ani historii — mogą być potrzebne do analizy lub odtworzenia danych.
+
+Operacja wykonana automatycznie przez agenta: backup utworzono i wypchnięto do zdalnego repozytorium;
+bieżący branch `feature/stage1-backend` został zaktualizowany i wypchnięty.
