@@ -6,7 +6,7 @@ describe('Header', () => {
     render(<Header />);
 
     expect(screen.getByRole('link', { name: 'BookClub Pro' })).toHaveAttribute('href', '/');
-    expect(screen.getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '/login');
-    expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute('href', '/register');
+    expect(screen.getByRole('link', { name: 'Zaloguj' })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: 'Zarejestruj się' })).toHaveAttribute('href', '/register');
   });
 });
