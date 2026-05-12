@@ -1,17 +1,107 @@
+import { createClient } from "@supabase/supabase-js";
+
 type AuthResult = {
   ok: boolean;
   message: string;
 };
 
+type SupabaseAuthError = {
+  message: string;
+  status?: number;
+};
+
+type SupabaseAuthResponse = {
+  data: {
+    user: { email?: string | null } | null;
+    session: unknown | null;
+  };
+  error: SupabaseAuthError | null;
+};
+
+let supabaseClient: ReturnType<typeof createClient> | null = null;
+
 function buildMockAuthResult(action: string, email: string): AuthResult {
   return { ok: true, message: `${action}: ${email} (mock)` };
 }
 
-// Minimal auth helpers (placeholders). Integrate with Supabase or chosen backend.
-export async function registerUser(email: string, _password: string): Promise<AuthResult> {
-  return buildMockAuthResult('Zarejestrowano', email);
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      "Brakuje konfiguracji Supabase. Ustaw NEXT_PUBLIC_SUPABASE_URL i NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+    );
+  }
+
+  if (!supabaseClient) {
+    const normalizedSupabaseUrl = supabaseUrl.replace(/\/rest\/v1\/?$/, "").replace(/\/$/, "");
+    supabaseClient = createClient(normalizedSupabaseUrl, supabaseAnonKey);
+  }
+
+  return supabaseClient;
+}
+
+function mapRegisterError(error: SupabaseAuthError) {
+  const normalizedMessage = error.message.toLowerCase();
+
+  if (error.status === 429 || normalizedMessage.includes("over_email_send_rate_limit")) {
+    return "Przekroczono limit wysyłki wiadomości rejestracyjnych. Spróbuj ponownie później.";
+  }
+
+  if (normalizedMessage.includes("already registered") || normalizedMessage.includes("already exists")) {
+    return "Ten adres e-mail jest już zarejestrowany.";
+  }
+
+  if (normalizedMessage.includes("password") && normalizedMessage.includes("6")) {
+    return "Hasło musi mieć co najmniej 6 znaków.";
+  }
+
+  if (normalizedMessage.includes("email") || normalizedMessage.includes("invalid")) {
+    return "Podany adres e-mail jest nieprawidłowy.";
+  }
+
+  return "Nie udało się utworzyć konta. Spróbuj ponownie.";
+}
+
+function getRegisterSuccessMessage(email: string, session: unknown | null) {
+  if (session) {
+    return `Konto utworzone dla ${email}. Możesz się zalogować.`;
+  }
+
+  return `Konto utworzone dla ${email}. Sprawdź skrzynkę, aby potwierdzić adres e-mail.`;
+}
+
+export async function registerUser(email: string, password: string): Promise<AuthResult> {
+  try {
+    const supabase = getSupabaseClient();
+    const normalizedEmail = email.trim();
+    const response = (await supabase.auth.signUp({
+      email: normalizedEmail,
+      password,
+    })) as SupabaseAuthResponse;
+
+    if (response.error) {
+      return { ok: false, message: mapRegisterError(response.error) };
+    }
+
+    if (!response.data.user) {
+      return { ok: false, message: "Nie udało się utworzyć konta. Spróbuj ponownie." };
+    }
+
+    return {
+      ok: true,
+      message: getRegisterSuccessMessage(normalizedEmail, response.data.session),
+    };
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("Brakuje konfiguracji Supabase")) {
+      return { ok: false, message: error.message };
+    }
+
+    return { ok: false, message: "Nie udało się utworzyć konta. Spróbuj ponownie." };
+  }
 }
 
 export async function loginUser(email: string, _password: string): Promise<AuthResult> {
-  return buildMockAuthResult('Zalogowano', email);
+  return buildMockAuthResult("Zalogowano", email);
 }
