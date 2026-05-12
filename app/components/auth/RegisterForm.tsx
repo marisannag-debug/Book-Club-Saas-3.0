@@ -8,6 +8,8 @@ export default function RegisterForm() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const emailId = "register-email";
+  const passwordId = "register-password";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -24,30 +26,42 @@ export default function RegisterForm() {
 
   return (
     <form onSubmit={handleSubmit} className="max-w-md mx-auto p-4">
-      <label className="block mb-2">Email</label>
+      <label htmlFor={emailId} className="block mb-2">
+        Email
+      </label>
       <input
+        id={emailId}
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
+        autoComplete="email"
         className="w-full p-2 border rounded mb-4"
       />
 
-      <label className="block mb-2">Hasło</label>
+      <label htmlFor={passwordId} className="block mb-2">
+        Hasło
+      </label>
       <input
+        id={passwordId}
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
         minLength={6}
+        autoComplete="new-password"
         className="w-full p-2 border rounded mb-4"
       />
 
-      <button disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded">
+      <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded">
         {loading ? "Wysyłanie..." : "Zarejestruj się"}
       </button>
 
-      {message && <p className="mt-4 text-sm">{message}</p>}
+      {message && (
+        <p className="mt-4 text-sm" role="status" aria-live="polite">
+          {message}
+        </p>
+      )}
     </form>
   );
 }

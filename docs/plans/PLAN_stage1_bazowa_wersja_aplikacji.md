@@ -7,138 +7,114 @@ date: 2026-05-04
 
 # Stage 1 — Bazowa wersja aplikacji
 
-## Preconditions
-- Repo z bazą aplikacji utworzoną przez `npx create-next-app@latest` (App Router).
-- Node.js 18+ i npm/yarn zainstalowane lokalnie.
-- Branch roboczy utworzony z `main`: `feature/stage1-file-structure`.
-- Brak zcommitowanych sekretów; dostęp do zmiennych środowiskowych (lokalnie przez `.env`/`.env.local`).
-
 ## 1. Cel
-Zapewnić stabilny szkielet aplikacji (Next.js App Router) z minimalnym layoutem, podstawowymi komponentami UI, placeholderami dla integracji backend (Supabase), podstawową konfiguracją deweloperską i checklistą gotową do review.
+Zbudować stabilny szkielet aplikacji Next.js, w którym frontend rozwija się etapami, a backend dokładamy tylko w minimalnym zakresie potrzebnym do obsługi aktualnego UI.
 
-## 2. Zakres
-- Wchodzi w zakres:
-  - Uporządkowanie / przeniesienie komponentów do `app/components/`.
-  - Minimalny `Header`, `Footer`, `Hero` oraz formy `RegisterForm` i `LoginForm` z mockowaną walidacją.
-  - Dodanie `lib/` z placeholderami: `supabase.server.ts`, `auth.ts` (mocki).
-  - Utworzenie `.env.example`, `supabase/migrations/README.md` i podstawowego README uruchamiania.
-  - Dodanie prostych testów smoke (unit + e2e-snippets).
-- Nie wchodzi w zakres:
-  - Pełna integracja z Supabase (rzeczywiste migracje/sekrety) — traktować jako placeholdery.
-  - Kompleksowe E2E dla wszystkich funkcji (tylko smoke dla auth routes).
+## 2. Założenia
+- Repozytorium to pojedyncza aplikacja Next.js App Router, nie monorepo.
+- Wspólne komponenty UI trzymamy w `app/components/`.
+- Backend budujemy stopniowo: najpierw placeholdery, później minimalne migracje i helpery, a dopiero potem kolejne funkcje domenowe.
+- Nie commitujemy sekretów. Wartości środowiskowe dokumentujemy w `.env.example`.
 
-## 3. Wymagania funkcjonalne
-- Strona główna (`/`) renderuje `Header`, `Hero` i `FeatureCards`.
-- `/register` i `/login` mają działające formularze UI (walidacja front-end).
+## 3. Aktualny zakres Stage 1
+### Frontend
+- `app/layout.tsx`
+- `app/page.tsx`
+- `app/components/Header.tsx`
+- `app/components/Hero.tsx`
+- `app/components/FeatureCards.tsx`
+- `app/components/Footer.tsx`
+- `app/register/page.tsx`
+- `app/login/page.tsx`
+- `app/components/auth/RegisterForm.tsx`
+- `app/components/auth/LoginForm.tsx`
+
+### Minimalny backend dla Stage 1
+- `lib/auth.ts` jako placeholder helperów auth.
+- `lib/supabase.server.ts` jako placeholder server client.
+- `supabase/migrations/000_init_users.sql`
+- `supabase/migrations/001_enable_rls_and_policies.sql`
+- `supabase/migrations/000_init_users_rollback.sql`
+- `supabase/migrations/001_enable_rls_and_policies_rollback.sql`
+
+### Dokumentacja i DX
+- `README.md`
+- `docs/README.md`
+- `supabase/migrations/README.md`
+- `.env.example`
+- `vitest.config.ts`
+- `vitest.setup.ts`
+- `tests/unit/header.test.tsx`
+
+## 4. Kolejność prac
+1. Frontend shell.
+   - Uporządkować `app/layout.tsx`, `app/page.tsx` i wspólne komponenty.
+   - W tym kroku landing ma być gotowy wizualnie, nawet jeśli backend jest jeszcze placeholderem.
+2. Auth UI.
+   - Dowozić `app/register/page.tsx` i `app/login/page.tsx` oraz ich formularze.
+   - Zostawić lokalną walidację po stronie klienta.
+3. Minimalny backend auth.
+   - Utrzymać `lib/auth.ts` i `lib/supabase.server.ts` jako cienkie placeholdery.
+   - Dodać tylko bazowe migracje, które umożliwią dalszą rozbudowę.
+4. Dokumentacja i testy.
+   - Uzupełnić `README.md`, `docs/README.md` i `supabase/migrations/README.md`.
+   - Dodać podstawowy test unit dla `Header`.
+
+## 5. Wymagania funkcjonalne
+- Strona główna (`/`) renderuje `Header`, `Hero`, `FeatureCards` i `Footer`.
+- `/register` i `/login` renderują formularze UI i wykonują podstawową walidację po stronie klienta.
+- Minimalne placeholdery backendowe nie blokują rozwoju frontendowego.
 - `npm run dev` uruchamia aplikację bez błędów.
-- `.env.example` dokumentuje wymagane zmienne.
 
-## 4. Wymagania niefunkcjonalne
-- Bezpieczeństwo: nie commitować sekretów; serwerowe klienty Supabase w `*.server.ts`.
+## 6. Wymagania niefunkcjonalne
+- Bezpieczeństwo: nie commitować sekretów; serwerowe klienty Supabase trzymać w `*.server.ts`.
 - Dostępność: podstawowe atrybuty ARIA w formularzach.
-- Czytelność i skalowalność: feature-first layout w `app/`.
+- Czytelność: feature-first layout w `app/`.
+- Skalowalność: backend wprowadzany etapami, tylko do poziomu niezbędnego dla aktualnej funkcji.
 
-## 5. Kontekst techniczny
-- Next.js (App Router), TypeScript (jeśli używane), React.
-- UI: małe, współdzielone komponenty w `app/components/`.
-- Backend: Supabase (placeholdery w `lib/` i folderze `supabase/`).
+## 7. Kroki implementacji
+1. Frontend — base shell.
+   - Uaktualnić `app/layout.tsx` i `app/page.tsx`.
+   - Spójnie ustawić `Header`, `Hero`, `FeatureCards`, `Footer`.
+2. Frontend — auth UI.
+   - Utrzymać `app/register/page.tsx` i `app/login/page.tsx` jako gotowe ekrany.
+   - Formularze mają zostać połączone z lokalną walidacją.
+3. Backend — minimalny poziom wsparcia.
+   - Zachować `lib/auth.ts` jako helper dla UI.
+   - Zachować `lib/supabase.server.ts` jako placeholder do późniejszej integracji.
+   - Włączyć tylko bazowe migracje `supabase/migrations/000_init_users.sql` i `supabase/migrations/001_enable_rls_and_policies.sql`.
+4. Docs i tests.
+   - Zaktualizować `README.md`, `docs/README.md`, `supabase/migrations/README.md`.
+   - Dodać i utrzymać `tests/unit/header.test.tsx`.
 
-## 6. Kroki implementacji
-1. Przygotowanie branch i preconditions (0.5h)
-   - `git checkout -b feature/stage1-file-structure`
-   - Upewnij się, że `main` jest aktualny: `git fetch && git rebase origin/main`.
-2. Frontend — Partia A: Layout i header (1.5h)
-   - Zaktualizuj `app/layout.tsx` żeby zawierał podstawowy `Header` i `Footer`.
-   - Utwórz `app/components/Header.tsx` z prostym nav (logo, linki `Home / Register / Login`).
-   - Utwórz `app/components/Footer.tsx` (kontakt, copyright).
-   - Sprawdź uruchomienie: `npm run dev`.
-3. Frontend — Partia B: Landing i auth forms (2h)
-   - Utwórz `app/components/Hero.tsx` i `app/components/FeatureCards.tsx`.
-   - Utwórz `app/register/page.tsx` i `app/login/page.tsx`, importuj `RegisterForm`/`LoginForm` z `app/components/auth/`.
-   - `RegisterForm` i `LoginForm` implementują local state + podstawową walidację (email, password length).
-4. Backend placeholders — Partia A: lib i env (0.5h)
-   - Dodaj `lib/supabase.server.ts` (export factory funkcji klienta, bez kluczy; komentarz o użyciu env vars).
-   - Dodaj `lib/auth.ts` z mockami helperów: `getUserFromCookie()` zwraca `null`/mock.
-   - Dodaj `.env.example` (patrz sekcja poniżej).
-5. Dev DX i dokumentacja (0.5h)
-   - Zaktualizuj `README.md` o kroki: `npm install`, `npm run dev` i wskazówki `.env`.
-   - Dodaj `supabase/migrations/README.md` z instrukcją `supabase db push --db-url $SUPABASE_DB_URL` (jeśli ktoś używa Supabase lokalnie).
-6. Testy — Partia A: smoke/unit (1h)
-   - Dodaj prosty test: `tests/unit/header.test.tsx` sprawdzający render `Header` (użyj Vitest + @testing-library/react lub Jest jeśli już w projekcie).
-   - Dodaj E2E smoke spec: `tests/e2e/smoke/auth.spec.ts` (Playwright) z przypadkami: render `/`, `/register`, `/login`.
-7. Review i PR (0.5h)
-   - Commituj małe zmiany: każdy logiczny krok jako osobny commit.
-   - PR title: `chore(stage1): scaffold file-structure and docs`
-   - Request review: 1x frontend dev, 1x backend dev.
+## 8. Kryteria akceptacji
+- `npm run dev` działa.
+- `/` pokazuje komplet podstawowego UI.
+- `/register` i `/login` renderują formularze i ich podstawowe stany.
+- `.env.example` dokumentuje zmienne środowiskowe.
+- `supabase/migrations/README.md` opisuje aktualne migracje.
+- Jest minimum jeden test unit dla `Header`.
 
-   - Przykładowe commity:
-     - `chore(stage1): add Header/Footer and layout adjustments`
-     - `chore(stage1): add auth forms and landing components`
-     - `chore(stage1): add lib placeholders and .env.example`
+## 9. Testy
+- Unit: `tests/unit/header.test.tsx`.
+- Opcjonalnie później: `tests/unit/auth.test.ts`.
+- Opcjonalnie później: `tests/e2e/auth.spec.ts`.
 
-## 7. Kryteria akceptacji
-- `npm run dev` startuje serwer i strona główna (`/`) renderuje bez błędów.
-- `/register` i `/login` renderują formularze i wykonują lokalną walidację (client-side).
-- `.env.example` zawiera wymagane zmienne środowiskowe.
-- Pliki umieszczone zgodnie z opisanym drzewem (feature-first w `app/`).
-- PR ma przynajmniej jedną aprobatę i zielone podstawowe testy (unit smoke).
-
-## 8. Testy
-- Unit:
-  - `tests/unit/header.test.tsx` — render Header.
-  - `tests/unit/forms.test.tsx` — walidacja RegisterForm.
-- E2E (smoke):
-  - `tests/e2e/smoke/auth.spec.ts` — uruchamia `http://localhost:3000`, sprawdza status i obecność znaczników.
-
-### .env.example (treść)
+## 10. `.env.example` (minimum)
 ```
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_DB_URL=
 NEXT_PUBLIC_APP_ENV=development
 ```
 
-### Przykładowa migracja SQL (opcjonalna, placeholder)
-Plik: `supabase/migrations/000_init_users.sql`
-```sql
--- minimalna tabela users (placeholder dla Stage 1)
-CREATE TABLE IF NOT EXISTS users (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  email text UNIQUE NOT NULL,
-  created_at timestamptz DEFAULT now()
-);
-```
+## 11. Notatka o rozwoju backendu
+- Backend powinien rosnąć razem z frontendem, ale tylko do minimalnego poziomu potrzebnego dla następnego kroku UI.
+- Kiedy dochodzi nowy ekran lub nowy flow, dodajemy najpierw niezbędny helper lub migrację, a dopiero potem pełną logikę domenową.
 
-Uruchomienie migracji (przykład):
-```
-supabase db push --db-url $SUPABASE_DB_URL
-```
-
-### Komendy lokalnego deva (PowerShell)
-```powershell
-git checkout -b feature/stage1-file-structure
-npm install
-npm run dev
-```
-
-### Acceptance E2E test (krok po kroku)
-1. `npm run dev`
-2. Otwórz `http://localhost:3000` — sprawdź czy załadował się `Header` i `Hero`.
-3. Przejdź do `/register` — wypełnij formularz (mock) i sprawdź walidację.
-4. Przejdź do `/login` — sprawdź walidację.
-
-## Branch i PR naming
-- Branch: `feature/stage1-file-structure`
-- Commit (example): `chore(stage1): scaffold file-structure and docs`
-- PR title: `chore(stage1): scaffold file-structure — Stage 1`
-
-## Minimalny podział pracy
-- Frontend dev: implementacja layoutu + komponentów + unit tests.
-- Backend dev: przygotowanie `lib/` placeholderów, instrukcji migracji, przegląd security.
-
-## PYTANIA / ZAŁOŻENIA
-- Czy integrujemy Supabase natychmiastowo, czy zostawiamy placeholdery? PROPOZYCJA: zostawić placeholdery w Stage 1 i zintegrować w Stage 8.
-- Czy preferujemy `Vitest` (lightweight) czy `Jest`? PROPOZYCJA: `Vitest` dla szybkich testów dev.
-
----
-Plan przygotowany zgodnie z `docs/workflows/Agent-plany.md`.
+## 12. Przykładowa kolejność commitów
+- `chore(stage1): add base layout and landing`
+- `chore(stage1): add auth screens and placeholders`
+- `chore(stage1): add migrations and docs`
+- `test(stage1): add Header unit test`
