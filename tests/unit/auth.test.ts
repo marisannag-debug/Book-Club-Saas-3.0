@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createClient } from '@supabase/supabase-js';
 import LoginForm from '../../app/components/auth/LoginForm';
 import RegisterForm from '../../app/components/auth/RegisterForm';
-import { loginUser, registerUser } from '../../lib/auth';
+import { loginUser, registerUser, resetSupabaseClientForTests } from '../../lib/auth';
 
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(),
@@ -12,16 +12,20 @@ vi.mock('@supabase/supabase-js', () => ({
 
 const mockedCreateClient = vi.mocked(createClient);
 const mockSignUp = vi.fn();
+const mockSignIn = vi.fn();
 
 beforeEach(() => {
   process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon-key';
   process.env.NEXT_PUBLIC_SITE_URL = 'http://localhost:3000';
+  resetSupabaseClientForTests();
   mockSignUp.mockReset();
+  mockSignIn.mockReset();
   mockedCreateClient.mockReset();
   mockedCreateClient.mockReturnValue({
     auth: {
       signUp: mockSignUp,
+      signInWithPassword: mockSignIn,
     },
   } as never);
 });
@@ -57,10 +61,33 @@ describe('auth helpers', () => {
     });
   });
 
-  it('formats a login success message', async () => {
+  it('uses Supabase Auth for login success', async () => {
+    mockSignIn.mockResolvedValue({
+      data: { user: { email: 'reader@example.com' }, session: { access_token: 'token' } },
+      error: null,
+    });
+
     await expect(loginUser('reader@example.com', 'secret123')).resolves.toEqual({
       ok: true,
-      message: 'Zalogowano: reader@example.com (mock)',
+      message: 'Zalogowano jako reader@example.com.',
+    });
+
+    expect(mockedCreateClient).toHaveBeenCalledWith('https://example.supabase.co', 'anon-key');
+    expect(mockSignIn).toHaveBeenCalledWith({
+      email: 'reader@example.com',
+      password: 'secret123',
+    });
+  });
+
+  it('maps Supabase login errors to user-friendly messages', async () => {
+    mockSignIn.mockResolvedValue({
+      data: { user: null, session: null },
+      error: { message: 'Invalid login credentials' },
+    });
+
+    await expect(loginUser('reader@example.com', 'secret123')).resolves.toEqual({
+      ok: false,
+      message: 'Nieprawidłowy e-mail lub hasło.',
     });
   });
 });
@@ -112,7 +139,25 @@ describe('RegisterForm', () => {
 });
 
 describe('LoginForm', () => {
+  it('blocks submit until the fields are valid and shows inline validation', async () => {
+    render(React.createElement(LoginForm));
+
+    expect(screen.getByRole('button', { name: 'Zaloguj się' })).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText('Email'), {
+      target: { value: 'reader@' },
+    });
+
+    expect(await screen.findByText('Wpisz poprawny adres e-mail.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Zaloguj się' })).toBeDisabled();
+  });
+
   it('submits the form and shows a success message', async () => {
+    mockSignIn.mockResolvedValue({
+      data: { user: { email: 'reader@example.com' }, session: { access_token: 'token' } },
+      error: null,
+    });
+
     render(React.createElement(LoginForm));
 
     fireEvent.change(screen.getByLabelText('Email'), {
@@ -122,11 +167,12 @@ describe('LoginForm', () => {
       target: { value: 'secret123' },
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Zaloguj' }));
+    expect(screen.getByRole('button', { name: 'Zaloguj się' })).toBeEnabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Zaloguj się' }));
 
     await waitFor(() => {
       expect(screen.getByRole('status')).toHaveTextContent(
-        'Zalogowano: reader@example.com (mock)',
+        'Zalogowano jako reader@example.com.',
       );
     });
   });

@@ -20,8 +20,8 @@ type SupabaseAuthResponse = {
 
 let supabaseClient: ReturnType<typeof createClient> | null = null;
 
-function buildMockAuthResult(action: string, email: string): AuthResult {
-  return { ok: true, message: `${action}: ${email} (mock)` };
+export function resetSupabaseClientForTests() {
+  supabaseClient = null;
 }
 
 function getSupabaseClient() {
@@ -64,6 +64,28 @@ function mapRegisterError(error: SupabaseAuthError) {
   return "Nie udało się utworzyć konta. Spróbuj ponownie.";
 }
 
+function mapLoginError(error: SupabaseAuthError) {
+  const normalizedMessage = error.message.toLowerCase();
+
+  if (error.status === 429 || normalizedMessage.includes("rate limit")) {
+    return "Przekroczono limit logowania. Spróbuj ponownie później.";
+  }
+
+  if (normalizedMessage.includes("email not confirmed")) {
+    return "Potwierdź adres e-mail przed zalogowaniem.";
+  }
+
+  if (normalizedMessage.includes("invalid login credentials") || normalizedMessage.includes("invalid credentials")) {
+    return "Nieprawidłowy e-mail lub hasło.";
+  }
+
+  if (normalizedMessage.includes("invalid") && normalizedMessage.includes("email")) {
+    return "Podany adres e-mail jest nieprawidłowy.";
+  }
+
+  return "Nie udało się zalogować. Spróbuj ponownie.";
+}
+
 function getRegisterSuccessMessage(email: string, session: unknown | null) {
   if (session) {
     return `Konto utworzone dla ${email}. Możesz się zalogować.`;
@@ -102,6 +124,36 @@ export async function registerUser(email: string, password: string): Promise<Aut
   }
 }
 
-export async function loginUser(email: string, _password: string): Promise<AuthResult> {
-  return buildMockAuthResult("Zalogowano", email);
+function getLoginSuccessMessage(email: string) {
+  return `Zalogowano jako ${email}.`;
+}
+
+export async function loginUser(email: string, password: string): Promise<AuthResult> {
+  try {
+    const supabase = getSupabaseClient();
+    const normalizedEmail = email.trim();
+    const response = (await supabase.auth.signInWithPassword({
+      email: normalizedEmail,
+      password,
+    })) as SupabaseAuthResponse;
+
+    if (response.error) {
+      return { ok: false, message: mapLoginError(response.error) };
+    }
+
+    if (!response.data.user && !response.data.session) {
+      return { ok: false, message: "Nie udało się zalogować. Spróbuj ponownie." };
+    }
+
+    return {
+      ok: true,
+      message: getLoginSuccessMessage(normalizedEmail),
+    };
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("Brakuje konfiguracji Supabase")) {
+      return { ok: false, message: error.message };
+    }
+
+    return { ok: false, message: "Nie udało się zalogować. Spróbuj ponownie." };
+  }
 }
