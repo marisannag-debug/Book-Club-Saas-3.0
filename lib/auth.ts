@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseBrowserClient } from "./supabase.browser";
 
 type AuthResult = {
   ok: boolean;
@@ -18,28 +18,12 @@ type SupabaseAuthResponse = {
   error: SupabaseAuthError | null;
 };
 
-let supabaseClient: ReturnType<typeof createClient> | null = null;
-
 export function resetSupabaseClientForTests() {
-  supabaseClient = null;
+  delete globalThis.__supabaseBrowserClient;
 }
 
 function getSupabaseClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error(
-      "Brakuje konfiguracji Supabase. Ustaw NEXT_PUBLIC_SUPABASE_URL i NEXT_PUBLIC_SUPABASE_ANON_KEY.",
-    );
-  }
-
-  if (!supabaseClient) {
-    const normalizedSupabaseUrl = supabaseUrl.replace(/\/rest\/v1\/?$/, "").replace(/\/$/, "");
-    supabaseClient = createClient(normalizedSupabaseUrl, supabaseAnonKey);
-  }
-
-  return supabaseClient;
+  return getSupabaseBrowserClient();
 }
 
 function mapRegisterError(error: SupabaseAuthError) {

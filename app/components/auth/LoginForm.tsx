@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { loginUser } from "../../../lib/auth";
 
@@ -34,6 +35,7 @@ function validatePassword(password: string) {
 }
 
 export default function LoginForm() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -87,6 +89,7 @@ export default function LoginForm() {
 
       if (res.ok) {
         setPassword("");
+        router.replace("/dashboard");
       }
     } catch {
       setMessage("Nie udało się zalogować. Spróbuj ponownie.");

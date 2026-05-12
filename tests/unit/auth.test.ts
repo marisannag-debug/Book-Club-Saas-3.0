@@ -6,8 +6,23 @@ import LoginForm from '../../app/components/auth/LoginForm';
 import RegisterForm from '../../app/components/auth/RegisterForm';
 import { loginUser, registerUser, resetSupabaseClientForTests } from '../../lib/auth';
 
+const { mockReplace } = vi.hoisted(() => ({
+  mockReplace: vi.fn(),
+}));
+
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(),
+}));
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    replace: mockReplace,
+    push: mockReplace,
+    prefetch: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+  }),
 }));
 
 const mockedCreateClient = vi.mocked(createClient);
@@ -19,6 +34,7 @@ beforeEach(() => {
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon-key';
   process.env.NEXT_PUBLIC_SITE_URL = 'http://localhost:3000';
   resetSupabaseClientForTests();
+  mockReplace.mockReset();
   mockSignUp.mockReset();
   mockSignIn.mockReset();
   mockedCreateClient.mockReset();
@@ -171,9 +187,7 @@ describe('LoginForm', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Zaloguj się' }));
 
     await waitFor(() => {
-      expect(screen.getByRole('status')).toHaveTextContent(
-        'Zalogowano jako reader@example.com.',
-      );
+      expect(mockReplace).toHaveBeenCalledWith('/dashboard');
     });
   });
 });

@@ -79,6 +79,8 @@ test.describe('auth pages', () => {
     await expect(page.getByRole('button', { name: 'Zaloguj się' })).toBeEnabled();
     await page.getByRole('button', { name: 'Zaloguj się' }).click();
 
-    await expect(page.getByRole('status')).toHaveText(/Zalogowano jako reader@example.com\./);
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(page.getByRole('heading', { name: 'Twoje centrum BookClub Pro' })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Utwórz nowy klub/i })).toBeVisible();
   });
 });
