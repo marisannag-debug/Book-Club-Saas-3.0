@@ -1,0 +1,54 @@
+{
+  "operation": "createClub",
+  "transport": "supabase-browser",
+  "request": {
+    "type": "object",
+    "required": ["name"],
+    "properties": {
+      "name": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 60
+      },
+      "description": {
+        "type": "string",
+        "maxLength": 240
+      }
+    }
+  },
+  "response": {
+    "success": {
+      "type": "object",
+      "required": ["ok", "message", "clubId"],
+      "properties": {
+        "ok": {
+          "const": true
+        },
+        "message": {
+          "type": "string"
+        },
+        "clubId": {
+          "type": "string",
+          "description": "Slug nowo utworzonego klubu"
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "required": ["ok", "message"],
+      "properties": {
+        "ok": {
+          "const": false
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "notes": [
+    "To jest kontrakt etapu 8 dla realnego zapisu klubu przez Supabase browser client.",
+    "Wieloklubowość na konto jest wspierana: kolejny klub nie jest blokowany na poziomie frontendowego flow.",
+    "Backend oczekuje tabeli clubs z migracji supabase/migrations/002_create_clubs.sql i RLS na created_by."
+  ]
+}

@@ -34,3 +34,7 @@ export function getSupabaseBrowserClient() {
 
   return globalThis.__supabaseBrowserClient;
 }
+
+export function resetSupabaseBrowserClientForTests() {
+  globalThis.__supabaseBrowserClient = undefined;
+}

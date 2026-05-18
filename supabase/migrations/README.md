@@ -8,6 +8,8 @@ This folder contains the database migrations used by Book Club SaaS.
 - `000_init_users_rollback.sql`
 - `001_enable_rls_and_policies.sql`
 - `001_enable_rls_and_policies_rollback.sql`
+- `002_create_clubs.sql`
+- `002_create_clubs_rollback.sql`
 
 ## Apply migrations
 
@@ -31,4 +33,4 @@ Rollback scripts are stored alongside the forward migrations. Apply them manuall
 
 - Do not commit secrets to the repository.
 - Keep `SUPABASE_DB_URL` in your local `.env` or CI secret store.
-- This stage only includes the initial users table and RLS/policy setup.
+Stage 8 adds the `clubs` table, its RLS policies, and rollback for club creation.

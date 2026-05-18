@@ -4,14 +4,18 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import DashboardNav from "../components/DashboardNav";
 import { getSupabaseBrowserClient } from "../../lib/supabase.client";
+import { loadDashboardClubsByUserId, type DashboardClubSummary } from "../../lib/dashboard-clubs";
 
 type DashboardSessionUser = {
+  id?: string | null;
   email?: string | null;
 };
 
 export default function DashboardPage() {
   const [status, setStatus] = useState<"loading" | "ready" | "redirecting">("loading");
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [clubs, setClubs] = useState<DashboardClubSummary[]>([]);
+  const [clubsError, setClubsError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -32,7 +36,15 @@ export default function DashboardPage() {
           return;
         }
 
+        const { clubs: dashboardClubs, error } = await loadDashboardClubsByUserId(sessionUser.id ?? "");
+
+        if (!mounted) {
+          return;
+        }
+
         setUserEmail(sessionUser.email ?? null);
+        setClubs(dashboardClubs);
+        setClubsError(error);
         setStatus("ready");
       } catch {
         if (!mounted) {
@@ -99,15 +111,13 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <DashboardNav
-          clubs={[
-            {
-              id: "demo-reading-circle",
-              name: "Demo Reading Circle",
-              description: "Przykładowy klub do szybkiego przejścia do widoku panelu.",
-            },
-          ]}
-        />
+        {clubsError ? (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-900">
+            {clubsError}
+          </div>
+        ) : null}
+
+        <DashboardNav clubs={clubs} />
       </div>
     </main>
   );
