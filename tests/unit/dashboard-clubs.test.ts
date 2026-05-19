@@ -8,14 +8,12 @@ vi.mock('../../lib/supabase.browser', () => ({
 
 const mockedGetSupabaseBrowserClient = vi.mocked(getSupabaseBrowserClient);
 const mockOrder = vi.fn();
-const mockEq = vi.fn(() => ({ order: mockOrder }));
-const mockSelect = vi.fn(() => ({ eq: mockEq }));
+const mockSelect = vi.fn(() => ({ order: mockOrder }));
 const mockFrom = vi.fn(() => ({ select: mockSelect }));
 
 beforeEach(() => {
   mockedGetSupabaseBrowserClient.mockReset();
   mockOrder.mockReset();
-  mockEq.mockClear();
   mockSelect.mockClear();
   mockFrom.mockClear();
 
@@ -44,7 +42,6 @@ describe('dashboard clubs helper', () => {
 
     expect(mockFrom).toHaveBeenCalledWith('clubs');
     expect(mockSelect).toHaveBeenCalledWith('id, name, description');
-    expect(mockEq).toHaveBeenCalledWith('created_by', 'user-id-1');
     expect(mockOrder).toHaveBeenCalledWith('created_at', { ascending: false });
   });
 

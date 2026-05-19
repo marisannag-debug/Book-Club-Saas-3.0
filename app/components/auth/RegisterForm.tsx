@@ -9,6 +9,10 @@ type FormErrors = {
   password: string;
 };
 
+type RegisterFormProps = {
+  redirectTo?: string;
+};
+
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function validateEmail(email: string) {
@@ -37,7 +41,15 @@ function validatePassword(password: string) {
   return "";
 }
 
-export default function RegisterForm() {
+function normalizeRedirect(value: string | undefined) {
+  if (!value || !value.startsWith("/")) {
+    return undefined;
+  }
+
+  return value;
+}
+
+export default function RegisterForm({ redirectTo }: RegisterFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -92,6 +104,14 @@ export default function RegisterForm() {
 
       if (res.ok) {
         setPassword("");
+
+        const normalizedRedirect = normalizeRedirect(redirectTo);
+
+        if (normalizedRedirect) {
+          window.setTimeout(() => {
+            window.location.replace(normalizedRedirect);
+          }, 0);
+        }
       }
     } catch (err) {
       setMessage("Nie udało się utworzyć konta. Spróbuj ponownie.");

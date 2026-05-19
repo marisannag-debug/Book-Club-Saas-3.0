@@ -1,0 +1,125 @@
+{
+  "operations": {
+    "createInvite": {
+      "transport": "supabase-server-route",
+      "request": {
+        "type": "object",
+        "required": ["clubId"],
+        "properties": {
+          "clubId": {
+            "type": "string"
+          },
+          "invitedEmail": {
+            "type": "string",
+            "format": "email"
+          }
+        }
+      },
+      "response": {
+        "success": {
+          "type": "object",
+          "required": ["ok", "message", "invite"],
+          "properties": {
+            "ok": { "const": true },
+            "message": { "type": "string" },
+            "invite": {
+              "type": "object",
+              "required": ["clubId", "clubName", "inviteCode", "inviteUrl", "expiresAt"],
+              "properties": {
+                "clubId": { "type": "string" },
+                "clubName": { "type": "string" },
+                "invitedEmail": { "type": ["string", "null"] },
+                "inviteCode": { "type": "string" },
+                "inviteUrl": { "type": "string" },
+                "expiresAt": { "type": "string" },
+                "emailSent": { "type": "boolean" }
+              }
+            }
+          }
+        },
+        "error": {
+          "type": "object",
+          "required": ["ok", "message"],
+          "properties": {
+            "ok": { "const": false },
+            "message": { "type": "string" }
+          }
+        }
+      }
+    },
+    "previewInvite": {
+      "transport": "supabase-server-route",
+      "request": {
+        "type": "object",
+        "required": ["token"],
+        "properties": {
+          "token": { "type": "string" }
+        }
+      },
+      "response": {
+        "success": {
+          "type": "object",
+          "required": ["ok", "invite"],
+          "properties": {
+            "ok": { "const": true },
+            "invite": {
+              "type": "object",
+              "required": ["clubId", "clubName", "inviteCode", "inviteUrl", "expiresAt"],
+              "properties": {
+                "clubId": { "type": "string" },
+                "clubName": { "type": "string" },
+                "invitedEmail": { "type": ["string", "null"] },
+                "inviteCode": { "type": "string" },
+                "inviteUrl": { "type": "string" },
+                "expiresAt": { "type": "string" },
+                "status": { "type": "string" }
+              }
+            }
+          }
+        },
+        "error": {
+          "type": "object",
+          "required": ["ok", "message"],
+          "properties": {
+            "ok": { "const": false },
+            "message": { "type": "string" }
+          }
+        }
+      }
+    },
+    "redeemInvite": {
+      "transport": "supabase-server-route",
+      "request": {
+        "type": "object",
+        "properties": {
+          "inviteCode": { "type": "string" },
+          "inviteToken": { "type": "string" }
+        }
+      },
+      "response": {
+        "success": {
+          "type": "object",
+          "required": ["ok", "message", "clubId"],
+          "properties": {
+            "ok": { "const": true },
+            "message": { "type": "string" },
+            "clubId": { "type": "string" }
+          }
+        },
+        "error": {
+          "type": "object",
+          "required": ["ok", "message"],
+          "properties": {
+            "ok": { "const": false },
+            "message": { "type": "string" }
+          }
+        }
+      }
+    }
+  },
+  "notes": [
+    "Invite link uses a public token for preview and a server-side redeem flow for membership creation.",
+    "Invite code remains a manual fallback for users who cannot open the email link.",
+    "Membership creation is enforced by Supabase migration and route-level checks."
+  ]
+}

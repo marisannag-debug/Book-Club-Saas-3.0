@@ -19,6 +19,22 @@ CREATE INDEX IF NOT EXISTS clubs_created_by_idx ON clubs (created_by);
 
 ALTER TABLE clubs ENABLE ROW LEVEL SECURITY;
 
+CREATE OR REPLACE FUNCTION user_is_member_of_club(target_club_id uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1
+    FROM club_members cm
+    WHERE cm.club_id = target_club_id
+      AND cm.user_id = auth.uid()
+  );
+END;
+$$;
+
 DROP POLICY IF EXISTS "Allow authenticated insert own club" ON clubs;
 CREATE POLICY "Allow authenticated insert own club" ON clubs
   FOR INSERT
@@ -28,6 +44,14 @@ DROP POLICY IF EXISTS "Allow authenticated select own club" ON clubs;
 CREATE POLICY "Allow authenticated select own club" ON clubs
   FOR SELECT
   USING (auth.uid() = created_by);
+
+DROP POLICY IF EXISTS "Allow club members to read clubs" ON clubs;
+CREATE POLICY "Allow club members to read clubs" ON clubs
+  FOR SELECT
+  USING (
+    auth.uid() = created_by
+    OR user_is_member_of_club(clubs.id)
+  );
 
 DROP POLICY IF EXISTS "Allow authenticated update own club" ON clubs;
 CREATE POLICY "Allow authenticated update own club" ON clubs

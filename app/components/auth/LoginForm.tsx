@@ -10,6 +10,10 @@ type FormErrors = {
   password: string;
 };
 
+type LoginFormProps = {
+  redirectTo?: string;
+};
+
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function validateEmail(email: string) {
@@ -34,7 +38,15 @@ function validatePassword(password: string) {
   return "";
 }
 
-export default function LoginForm() {
+function normalizeRedirect(value: string | undefined) {
+  if (!value || !value.startsWith("/")) {
+    return "/dashboard";
+  }
+
+  return value;
+}
+
+export default function LoginForm({ redirectTo }: LoginFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -89,7 +101,7 @@ export default function LoginForm() {
 
       if (res.ok) {
         setPassword("");
-        router.replace("/dashboard");
+        router.replace(normalizeRedirect(redirectTo));
       }
     } catch {
       setMessage("Nie udało się zalogować. Spróbuj ponownie.");

@@ -11,6 +11,10 @@ describe('ClubDashboard', () => {
     expect(screen.getByRole('heading', { name: 'Wybór książki na najbliższy miesiąc' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Nadchodzące spotkanie' })).toBeInTheDocument();
     expect(screen.getByText('Kod klubu')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Generuj zaproszenie' })).toHaveAttribute(
+      'href',
+      '/club/sunset-readers/invite',
+    );
   });
 
   it('renders empty states when the club has no activity yet', () => {

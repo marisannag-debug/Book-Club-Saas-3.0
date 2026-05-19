@@ -83,21 +83,30 @@ Założenie operacyjne: frontend dowozimy etapami, a backend budujemy równolegl
   - `app/components/club/CreateClubForm.tsx`.
 - Opis: po sukcesie redirect do `app/club/[id]`.
 
-## Stage 9 — Role: członek i prowadzący
+## Stage 9 — Dołączanie do klubu (zaproszenia/kody)
+- Cel: invite via email + generowany kod/link.
+- Proponowane pliki:
+  - `app/club/join/page.tsx`.
+  - `app/club/[id]/invite/page.tsx`.
+  - `app/components/club/JoinClubForm.tsx`.
+  - `app/components/club/CreateInviteForm.tsx`.
+  - `app/api/club-invites/route.ts`.
+  - `app/api/club-invites/preview/route.ts`.
+  - `app/api/club-invites/redeem/route.ts`.
+  - `lib/club-invite.server.ts`.
+  - `lib/invite.ts`.
+  - `docs/contracts/club-invite.json`.
+  - `supabase/migrations/003_create_club_invites.sql`.
+  - `supabase/migrations/003_create_club_invites_rollback.sql`.
+- Opis: generowanie linku, wysyłka maila, flow akceptacji.
+
+## Stage 10 — Role: członek i prowadzący
 - Cel: model ról, migracje DB i UI zarządzania rolami.
 - Proponowane pliki:
   - `supabase/migrations/NN_create_roles.sql`.
   - `lib/db/roles.ts`.
   - `app/club/[id]/members/manage.tsx`.
 - Opis: przygotować RLS i polityki oraz UI do nadawania ról.
-
-## Stage 10 — Dołączanie do klubu (zaproszenia/kody)
-- Cel: invite via email + generowany kod/link.
-- Proponowane pliki:
-  - `app/club/[id]/invite/page.tsx`.
-  - `app/api/invite/route.ts`.
-  - `lib/invite.ts`.
-- Opis: generowanie linku, wysyłka maila, flow akceptacji.
 
 ## Stage 11 — Brakujące funkcje członkostwa
 - Cel: CRUD członkostwa (akceptacja, opuszczanie, role).

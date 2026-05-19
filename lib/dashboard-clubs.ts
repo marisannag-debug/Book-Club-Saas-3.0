@@ -32,7 +32,6 @@ export async function loadDashboardClubsByUserId(userId: string): Promise<Dashbo
     const { data, error } = await supabase
       .from("clubs")
       .select("id, name, description")
-      .eq("created_by", normalizedUserId)
       .order("created_at", { ascending: false });
 
     if (error) {

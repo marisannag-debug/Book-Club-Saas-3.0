@@ -79,10 +79,10 @@ export default function ClubDashboard({ club }: ClubDashboardProps) {
           footer={
             <div className="flex flex-wrap items-center gap-3">
               <Link
-                href="/dashboard"
+                href={`/club/${club.id}/invite`}
                 className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-950/20"
               >
-                Przejdź do listy klubów
+                Generuj zaproszenie
               </Link>
               {buildStageBadge("Stage 10")}
             </div>

@@ -1,10 +1,24 @@
+"use client";
+
+import { useSearchParams } from "next/navigation";
 import RegisterForm from "../components/auth/RegisterForm";
 
+function normalizeRedirect(value: string | null) {
+  if (!value || !value.startsWith("/")) {
+    return undefined;
+  }
+
+  return value;
+}
+
 export default function Page() {
+  const searchParams = useSearchParams();
+  const returnTo = normalizeRedirect(searchParams.get("returnTo"));
+
   return (
-    <main className="max-w-3xl mx-auto px-6 py-16">
-      <h2 className="text-2xl font-bold mb-4">Zarejestruj się</h2>
-      <RegisterForm />
+    <main className="mx-auto max-w-3xl px-6 py-16">
+      <h2 className="mb-4 text-2xl font-bold">Zarejestruj się</h2>
+      <RegisterForm redirectTo={returnTo} />
     </main>
   );
 }
