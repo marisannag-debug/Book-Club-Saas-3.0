@@ -2,7 +2,7 @@ import Link from "next/link";
 import ClubDashboardHeader from "./ClubDashboardHeader";
 import ClubSummaryCard from "./ClubSummaryCard";
 import type { ClubDashboardModel } from "./types";
-import { buildClubDashboardFallback } from "../../../lib/club-dashboard.server";
+import { buildClubDashboardFallback as buildClubDashboardMock } from "../../../lib/club-dashboard.server";
 
 type ClubDashboardProps = {
   club: ClubDashboardModel;
@@ -16,7 +16,7 @@ function buildStageBadge(stageLabel: string) {
   );
 }
 
-export { buildClubDashboardFallback as buildClubDashboardMock } from "../../../lib/club-dashboard.server";
+export { buildClubDashboardMock };
 
 export default function ClubDashboard({ club }: ClubDashboardProps) {
   return (
@@ -42,7 +42,17 @@ export default function ClubDashboard({ club }: ClubDashboardProps) {
                 ]
               : []
           }
-          footer={club.activeVoting ? buildStageBadge("Stage 12") : buildStageBadge("W przygotowaniu")}
+          footer={
+            <div className="flex flex-wrap items-center gap-3">
+              {club.activeVoting ? buildStageBadge("Stage 12") : buildStageBadge("W przygotowaniu")}
+              <Link
+                href={`/club/${club.id}/voting/create`}
+                className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-950/20"
+              >
+                Propozycje książek
+              </Link>
+            </div>
+          }
         />
 
         <ClubSummaryCard
@@ -69,22 +79,30 @@ export default function ClubDashboard({ club }: ClubDashboardProps) {
 
         <ClubSummaryCard
           eyebrow="Invite members"
-          title="Skrót do zaproszeń"
+          title="Członkowie i zaproszenia"
           status={club.invite.status}
           description={club.invite.hint}
-          metrics={[
-            { label: "Kod klubu", value: club.invite.code },
-            { label: "Członkowie", value: `${club.memberCount}` },
-          ]}
+          metrics={[{ label: "Członkowie", value: `${club.memberCount}` }]}
           footer={
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={`/club/${club.id}/members/manage`}
+                className="inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950/20"
+              >
+                Lista członków
+              </Link>
               <Link
                 href={`/club/${club.id}/invite`}
                 className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-950/20"
               >
                 Generuj zaproszenie
               </Link>
-              {buildStageBadge("Stage 10")}
+              <Link
+                href={`/club/${club.id}/members/me/actions`}
+                className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-950/20"
+              >
+                Moje członkostwo
+              </Link>
             </div>
           }
         />

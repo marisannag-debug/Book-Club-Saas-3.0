@@ -39,11 +39,17 @@ function buildDemoMeeting(): ClubDashboardMeeting {
 function buildDemoInvite(id: string, isEmptyState: boolean): ClubDashboardInvite {
   return {
     code: `${id.slice(0, 4).toUpperCase() || "BOOK"}-${Math.max(100, id.length * 17)}`,
-    hint:
-      "W stage 10 dodamy zaproszenia linkiem i mailem, a tutaj zostawiamy czytelny skrót do kolejnego kroku.",
-    status: isEmptyState ? "Przygotowanie" : "Gotowe na dalszy etap",
+    hint: isEmptyState
+      ? "Wygeneruj pierwsze zaproszenie, aby udostępnić klub przez link lub kod osobie, która ma dołączyć."
+      : "Wygeneruj link lub kod zaproszenia i przekaż go osobie, która ma dołączyć do klubu.",
+    status: isEmptyState ? "Brak zaproszeń" : "Aktywne zaproszenia",
   };
 }
+
+type ClubMemberCountRow = {
+  user_id: string;
+  membership_status?: "pending" | "active" | "left" | null;
+};
 
 function buildFallbackClubDashboard(id: string): ClubDashboardModel {
   const normalizedId = id.trim();
@@ -78,18 +84,20 @@ export async function getClubDashboardById(id: string): Promise<ClubDashboardMod
     const supabase = getSupabaseServerClient();
     const { data, error } = await supabase
       .from("clubs")
-      .select("id, name, description")
+      .select("id, name, description, created_by")
       .eq("id", normalizedId)
       .maybeSingle();
 
     if (!error && data) {
       const fallback = buildFallbackClubDashboard(normalizedId);
+      const memberCount = await getRealClubMemberCount(data.id, data.created_by);
 
       return {
         ...fallback,
         id: data.id,
         name: data.name,
         description: data.description ?? fallback.description,
+        memberCount: memberCount ?? fallback.memberCount,
       };
     }
   } catch {
@@ -97,4 +105,25 @@ export async function getClubDashboardById(id: string): Promise<ClubDashboardMod
   }
 
   return buildFallbackClubDashboard(normalizedId);
+}
+
+async function getRealClubMemberCount(clubId: string, creatorId: string) {
+  const supabase = getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("club_members")
+    .select("user_id, membership_status")
+    .eq("club_id", clubId);
+
+  if (error || !data) {
+    return null;
+  }
+
+  const activeMemberIds = new Set(
+    (data as ClubMemberCountRow[])
+      .filter((member) => member.membership_status !== "left" && member.membership_status !== "pending")
+      .map((member) => member.user_id),
+  );
+  const hasCreator = activeMemberIds.has(creatorId);
+
+  return activeMemberIds.size + (hasCreator ? 0 : 1);
 }

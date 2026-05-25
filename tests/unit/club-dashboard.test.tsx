@@ -10,7 +10,7 @@ describe('ClubDashboard', () => {
     expect(screen.getByRole('link', { name: 'Wróć do dashboardu' })).toHaveAttribute('href', '/dashboard');
     expect(screen.getByRole('heading', { name: 'Wybór książki na najbliższy miesiąc' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Nadchodzące spotkanie' })).toBeInTheDocument();
-    expect(screen.getByText('Kod klubu')).toBeInTheDocument();
+    expect(screen.getByText('Aktywne zaproszenia')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Generuj zaproszenie' })).toHaveAttribute(
       'href',
       '/club/sunset-readers/invite',
@@ -23,6 +23,6 @@ describe('ClubDashboard', () => {
     expect(screen.getByRole('heading', { name: 'Empty Club' })).toBeInTheDocument();
     expect(screen.getByText(/Nie ma jeszcze aktywnego głosowania/i)).toBeInTheDocument();
     expect(screen.getByText(/Nie ma jeszcze zaplanowanego spotkania/i)).toBeInTheDocument();
-    expect(screen.getByText(/W stage 10 dodamy zaproszenia linkiem/i)).toBeInTheDocument();
+    expect(screen.getByText(/Wygeneruj pierwsze zaproszenie/i)).toBeInTheDocument();
   });
 });

@@ -109,6 +109,11 @@ Deploy
 
 DB & migration rules (Supabase)
 - Każda zmiana schematu musi być: migration SQL (w `supabase/migrations/`) + rollback SQL lub invert script.
+- Przy pracy ze zdalną bazą najpierw spróbuj `npx supabase db push --db-url $SUPABASE_DB_URL` z poprawnie ustawionym URL w `.env` lub sekretach CI.
+- Jeśli bezpośredni host nie rozwiązuje się w tym środowisku, przełącz się na pooler Supabase `aws-0-<region>.pooler.supabase.com` i użyj loginu `postgres.<project-ref>` z tym samym hasłem z `SUPABASE_DB_URL`.
+- Gdy `supabase db push` ładuje niechciane pliki rollback albo kończy się konfliktem historii migracji, wykonuj tylko docelowy plik SQL przez `npx supabase db query --db-url ... --file <migration.sql>` albo rozbij operację na pojedyncze statementy.
+- `supabase db query` najlepiej traktować jako narzędzie do jednego statementu naraz; jeśli plik zawiera wiele poleceń, podawaj je osobno lub opakuj w jeden blok `DO` / pojedynczą definicję funkcji.
+- Po ręcznym zastosowaniu zmian do remote DB sprawdź wynik prostym SELECT na `information_schema.columns` i `pg_policies`, zamiast zakładać powodzenie po samym wyjściu CLI.
 - Tworzenie migracji (lokalnie):
 ```bash
 npx supabase migration new add_votes_table

@@ -1,0 +1,55 @@
+{
+  "feature": "club-roles",
+  "transport": "next-route-handler",
+  "routes": {
+    "GET /api/club-roles?clubId=:clubId": {
+      "auth": "required",
+      "successStatus": 200,
+      "response": {
+        "ok": true,
+        "status": 200,
+        "club": {
+          "clubId": "uuid",
+          "clubName": "string",
+          "currentUserRole": "host|member",
+          "members": [
+            {
+              "userId": "uuid",
+              "email": "string|null",
+              "displayName": "string",
+              "role": "host|member",
+              "joinedAt": "iso-date",
+              "isCurrentUser": "boolean",
+              "isCreator": "boolean"
+            }
+          ]
+        }
+      },
+      "errors": [400, 401, 403, 404, 500]
+    },
+    "PATCH /api/club-roles": {
+      "auth": "required",
+      "body": {
+        "clubId": "uuid",
+        "userId": "uuid",
+        "role": "host|member"
+      },
+      "successStatus": 200,
+      "response": {
+        "ok": true,
+        "status": 200,
+        "message": "Rola członka została zaktualizowana.",
+        "member": {
+          "userId": "uuid",
+          "email": "string|null",
+          "displayName": "string",
+          "role": "host|member",
+          "joinedAt": "iso-date",
+          "isCurrentUser": "boolean",
+          "isCreator": "boolean"
+        }
+      },
+      "errors": [400, 401, 403, 404, 500]
+    }
+  }
+}

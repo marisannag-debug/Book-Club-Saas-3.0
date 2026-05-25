@@ -1,5 +1,16 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import JoinClubForm from "../../components/club/JoinClubForm";
+
+function JoinClubFormFallback() {
+  return (
+    <section className="rounded-[2rem] border border-slate-200 bg-white/90 px-6 py-8 shadow-[0_18px_60px_-32px_rgba(15,23,42,0.35)] backdrop-blur sm:px-8">
+      <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Zaproszenie</p>
+      <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">Wczytujemy formularz</h2>
+      <p className="mt-3 text-sm leading-6 text-slate-600">Przygotowujemy dane zaproszenia.</p>
+    </section>
+  );
+}
 
 export default function JoinClubPage() {
   return (
@@ -31,7 +42,9 @@ export default function JoinClubPage() {
           </div>
         </section>
 
-        <JoinClubForm />
+        <Suspense fallback={<JoinClubFormFallback />}>
+          <JoinClubForm />
+        </Suspense>
       </div>
     </main>
   );

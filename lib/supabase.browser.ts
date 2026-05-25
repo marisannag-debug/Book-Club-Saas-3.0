@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
+import type { SupabaseAppClient, SupabaseDatabase } from "./supabase.types";
 
-type SupabaseBrowserClient = ReturnType<typeof createClient>;
+type SupabaseBrowserClient = SupabaseAppClient;
 
 declare global {
   // eslint-disable-next-line no-var
@@ -29,7 +30,7 @@ export function getSupabaseBrowserClient() {
   if (!globalThis.__supabaseBrowserClient) {
     const { supabaseAnonKey, supabaseUrl } = getSupabaseBrowserConfig();
 
-    globalThis.__supabaseBrowserClient = createClient(supabaseUrl, supabaseAnonKey);
+    globalThis.__supabaseBrowserClient = createClient<SupabaseDatabase>(supabaseUrl, supabaseAnonKey);
   }
 
   return globalThis.__supabaseBrowserClient;

@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { getSupabaseServerClient } from "./supabase.server";
+import type { SupabaseAppClient, SupabaseDatabase } from "./supabase.types";
 import {
   buildInviteCode,
   buildInviteExpiresAt,
@@ -123,7 +124,7 @@ function getSupabaseRequestConfig(accessToken: string) {
 function createRequestSupabaseClient(accessToken: string) {
   const { supabaseAnonKey, supabaseUrl, accessToken: normalizedAccessToken } = getSupabaseRequestConfig(accessToken);
 
-  return createClient(supabaseUrl, supabaseAnonKey, {
+  return createClient<SupabaseDatabase>(supabaseUrl, supabaseAnonKey, {
     auth: {
       autoRefreshToken: false,
       detectSessionInUrl: false,
@@ -174,7 +175,7 @@ async function getAuthenticatedUser(accessToken: string) {
   return response.data.user;
 }
 
-async function findClubByIdForClient(supabase: ReturnType<typeof createClient>, clubId: string) {
+async function findClubByIdForClient(supabase: SupabaseAppClient, clubId: string) {
   const { data, error } = await supabase
     .from("clubs")
     .select("id, name, created_by")
@@ -188,7 +189,7 @@ async function findClubByIdForClient(supabase: ReturnType<typeof createClient>, 
   return data as ClubRow;
 }
 
-async function findInviteByCodeForClient(supabase: ReturnType<typeof createClient>, inviteCode: string) {
+async function findInviteByCodeForClient(supabase: SupabaseAppClient, inviteCode: string) {
   const { data, error } = await supabase
     .from("club_invites")
     .select("id, club_id, invited_email, invited_by, invite_code, invite_token_hash, status, expires_at, accepted_at, accepted_by")
@@ -202,7 +203,7 @@ async function findInviteByCodeForClient(supabase: ReturnType<typeof createClien
   return data as ClubInviteRow;
 }
 
-async function findInviteByTokenForClient(supabase: ReturnType<typeof createClient>, inviteToken: string) {
+async function findInviteByTokenForClient(supabase: SupabaseAppClient, inviteToken: string) {
   const { data, error } = await supabase
     .from("club_invites")
     .select("id, club_id, invited_email, invited_by, invite_code, invite_token_hash, status, expires_at, accepted_at, accepted_by")
@@ -457,6 +458,7 @@ export async function redeemClubInvite({ inviteCode, inviteToken, accessToken }:
         club_id: invite.club_id,
         user_id: user.id,
         joined_via_invite_id: invite.id,
+        membership_status: "active",
       },
       {
         onConflict: "club_id,user_id",

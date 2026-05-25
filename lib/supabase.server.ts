@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
+import type { SupabaseAppClient, SupabaseDatabase } from "./supabase.types";
 
-type SupabaseServerClient = ReturnType<typeof createClient>;
+type SupabaseServerClient = SupabaseAppClient;
 
 let supabaseServerClient: SupabaseServerClient | null = null;
 
@@ -39,7 +40,7 @@ export function getSupabaseServerClient() {
   if (!supabaseServerClient) {
     const { supabaseKey, supabaseUrl } = getSupabaseServerConfig();
 
-    supabaseServerClient = createClient(supabaseUrl, supabaseKey, {
+    supabaseServerClient = createClient<SupabaseDatabase>(supabaseUrl, supabaseKey, {
       auth: {
         autoRefreshToken: false,
         detectSessionInUrl: false,

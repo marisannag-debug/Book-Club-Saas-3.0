@@ -10,18 +10,32 @@ const mockedGetSupabaseServerClient = vi.mocked(getSupabaseServerClient);
 
 const mockMaybeSingle = vi.fn();
 const mockEq = vi.fn(() => ({ maybeSingle: mockMaybeSingle }));
+const mockMembersEq = vi.fn();
 const mockSelect = vi.fn(() => ({ eq: mockEq }));
-const mockFrom = vi.fn(() => ({ select: mockSelect }));
 
 beforeEach(() => {
   mockedGetSupabaseServerClient.mockReset();
   mockMaybeSingle.mockReset();
   mockEq.mockReset();
+  mockMembersEq.mockReset();
   mockSelect.mockReset();
-  mockFrom.mockReset();
 
   mockedGetSupabaseServerClient.mockReturnValue({
-    from: mockFrom,
+    from: (table: string) => {
+      if (table === 'clubs') {
+        return { select: mockSelect };
+      }
+
+      if (table === 'club_members') {
+        return {
+          select: () => ({
+            eq: mockMembersEq,
+          }),
+        };
+      }
+
+      return { select: mockSelect };
+    },
   } as never);
 });
 
@@ -32,7 +46,17 @@ describe('club dashboard server helper', () => {
         id: 'sunset-readers',
         name: 'Sunset Readers',
         description: 'Spotkania przy kawie i książkach.',
+        created_by: 'creator-id',
       },
+      error: null,
+    });
+    mockMembersEq.mockResolvedValue({
+      data: [
+        { user_id: 'creator-id', membership_status: 'active' },
+        { user_id: 'member-id', membership_status: 'active' },
+        { user_id: 'member-id', membership_status: 'active' },
+        { user_id: 'left-member-id', membership_status: 'left' },
+      ],
       error: null,
     });
 
@@ -40,7 +64,7 @@ describe('club dashboard server helper', () => {
       id: 'sunset-readers',
       name: 'Sunset Readers',
       description: 'Spotkania przy kawie i książkach.',
-      memberCount: expect.any(Number),
+      memberCount: 2,
       activeVoting: expect.objectContaining({
         title: 'Wybór książki na najbliższy miesiąc',
       }),
@@ -63,7 +87,7 @@ describe('club dashboard server helper', () => {
       activeVoting: null,
       nextMeeting: null,
       invite: expect.objectContaining({
-        status: 'Przygotowanie',
+        status: 'Brak zaproszeń',
       }),
     });
   });

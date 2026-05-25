@@ -1,272 +1,428 @@
 ---
 title: "MVP — Plan struktury plików"
-description: "Docelowa struktura plików dla etapów MVP zgodna z aktualnym projektem Book-Club-Saas-3.0"
 status: draft
-version: 0.2
+version: 1.0
 authors: ["AI (wygenerowane)"]
+date: 2026-05-25
 references:
-  - docs/plans/mvp-stage-outline.md
+  - docs/workflows/Agent-plany.md
+  - docs/workflows/Agent-programowanie.md
   - docs/architecture/01-makiety.md
-date: 2026-05-04
+  - docs/architecture/03-zasady-ux.md
+  - docs/plans/bookclub-pro-mvp-scoping.md
+  - docs/plans/PLAN_stage1_bazowa_wersja_aplikacji.md
+  - docs/plans/PLAN_stage2_strona_glowna.md
+  - docs/plans/PLAN_stage3_rejestracja.md
+  - docs/plans/PLAN_stage4_logowanie.md
+  - docs/plans/PLAN_stage5_minimalny_backend_auth.md
+  - docs/plans/PLAN_stage6_kontrola_funkcjonowania_rejestracji_i_logowania.md
+  - docs/plans/PLAN_stage7_strona_klubu.md
+  - docs/plans/PLAN_stage8_tworzenie_klubu.md
+  - docs/plans/PLAN_stage8_5_wdrozenie_i_weryfikacja_supabase.md
+  - docs/plans/PLAN_stage9_dolaczanie_do_klubu.md
+  - docs/plans/PLAN_stage10_role_czlonek_i_prowadzacy.md
+  - docs/plans/PLAN_stage11_brakujace_funkcje_czlonkostwa.md
 ---
 
-# MVP — Plan struktury plików i krótkie opisy
+# MVP — Plan struktury plików i kolejności etapów
 
-Na podstawie `docs/plans/mvp-stage-outline.md` oraz `docs/architecture/01-makiety.md` przygotowano poniższy plan etapów wraz z docelową strukturą plików zgodną z aktualnym drzewem repozytorium `Book-Club-Saas-3.0`.
+## 1. Cel
+Zdefiniować docelową strukturę plików oraz kolejność dowożenia MVP BookClub Pro w małych, wykonywalnych etapach. Plan ma utrzymać spójność między UI, backendem, migracjami Supabase, testami i dokumentacją, tak aby każdy etap mógł być wdrożony niezależnie i zweryfikowany lokalnie.
 
-Założenie operacyjne: frontend dowozimy etapami, a backend budujemy równolegle, ale tylko do minimalnego poziomu potrzebnego do obsługi aktualnie dowożonego UI.
+## 2. Zakres
+### Wchodzi w zakres
+- Pełna mapa etapów MVP od Stage 1 do Stage 18.
+- Docelowe pliki frontendowe, backendowe, testowe i dokumentacyjne dla każdego etapu.
+- Podział pracy na małe partie: frontend najpierw, backend równolegle, potem testy i weryfikacja.
+- Powiązanie planu struktury z aktualnym drzewem repozytorium `Book-Club-Saas-3.0`.
+- Minimalne wymagania środowiskowe, komendy uruchomieniowe i strategia migracji Supabase.
 
-## Stage 1 — Bazowa wersja aplikacji
-- Cel: działający szkielet Next.js z minimalnym layoutem i skryptami.
-- Proponowane pliki:
-  - `package.json`.
-  - `next.config.ts`.
-  - `app/layout.tsx`, `app/page.tsx`.
-- Opis: weryfikacja środowiska deweloperskiego i minimalnego layoutu zgodnego z makietą S001.
+### Nie wchodzi w zakres
+- Szczegółowa implementacja każdego stage w kodzie źródłowym.
+- Production hardening wykraczający poza MVP, np. billing, role globalne, panel pro-admin.
+- Rozbudowany analytics stack, mobile app, realtime collaboration poza planem MVP.
+- Finalny design system. Plan dotyczy struktury plików i kolejności dostarczania, nie pełnego brand booka.
 
-## Stage 2 — Strona główna
-- Cel: landing z CTA do rejestracji.
-- Proponowane pliki:
-  - `app/page.tsx` (aktualizacja).
-  - `app/components/Header.tsx`.
-  - `app/components/Hero.tsx`.
-  - `app/components/FeatureCards.tsx`.
-  - `app/components/Footer.tsx`.
-- Opis: hero i sekcja funkcji zgodne z S001; CTA prowadzi do `/register`.
+## 3. Wymagania funkcjonalne
+- Plan musi wskazywać, które pliki powstają w którym stage.
+- Plan musi pokazywać kolejność: frontend, backend, testy, weryfikacja.
+- Plan musi zachować zgodność z aktualnym układem repozytorium i z App Routerem Next.js.
+- Plan musi zawierać ścieżki dla migracji Supabase, kontraktów API i testów E2E.
+- Plan musi być spójny z późniejszymi planami Stage 1-11, które odwołują się do tego dokumentu.
 
-## Stage 3 — Rejestracja
-- Cel: formularz rejestracji (email + hasło).
-- Proponowane pliki:
-  - `app/register/page.tsx`.
-  - `app/components/auth/RegisterForm.tsx`.
-  - `lib/auth.ts`.
-- Opis: dostępność (ARIA), podstawowa walidacja i mockowane helpery auth.
+## 4. Wymagania niefunkcjonalne
+- Wydajność: frontend ma być budowany etapami, bez nadmiarowej logiki po stronie klienta.
+- Bezpieczeństwo: backend i migracje muszą zakładać Supabase RLS i minimalne uprawnienia.
+- UX: każda karta planu ma odpowiadać konkretnemu ekranowi lub flow, bez rozmytych zakresów.
+- Utrzymanie: plan musi od razu wskazywać docelowe pliki, by nie trzeba było zgadywać lokalizacji.
+- Testowalność: każdy etap musi mieć przypisany minimalny test lub check do uruchomienia lokalnie.
 
-## Stage 4 — Logowanie
-- Cel: flow logowania i odzyskiwania sesji.
-- Proponowane pliki:
-  - `app/login/page.tsx`.
-  - `app/components/auth/LoginForm.tsx`.
-- Opis: prosty UI i przekierowanie po sukcesie do dashboardu klubu.
+## 5. Kontekst techniczny
+- App Router w `app/` jest główną osią aplikacji.
+- Współdzielone komponenty UI trafiają do `app/components/`.
+- Backend domain helpery trafiają do `lib/` i `lib/db/`.
+- Migracje i rollbacki trafiają do `supabase/migrations/`.
+- Testy unit i E2E trafiają odpowiednio do `tests/unit/` i `tests/e2e/`.
+- Dokumentacja etapów trafia do `docs/plans/` i `docs/implemented/`.
 
-## Stage 5 — Minimalny backend auth
-- Cel: backend minimalny do obsługi rejestracji i logowania.
-- Proponowane pliki:
-  - `lib/auth.ts`.
-  - `lib/supabase.server.ts`.
-  - `supabase/migrations/000_init_users.sql`.
-  - `supabase/migrations/001_enable_rls_and_policies.sql`.
-  - `supabase/migrations/000_init_users_rollback.sql`.
-  - `supabase/migrations/001_enable_rls_and_policies_rollback.sql`.
-- Opis: najpierw obsłużyć aktualny front, potem rozszerzać backend o kolejne zależności biznesowe.
+## 6. Kroki implementacji
+### 6.1 Stage 1 — Bazowa wersja aplikacji
+Frontend:
+- `app/layout.tsx`
+- `app/page.tsx`
+- `app/components/Header.tsx`
+- `app/components/Hero.tsx`
+- `app/components/FeatureCards.tsx`
+- `app/components/Footer.tsx`
+- `app/register/page.tsx`
+- `app/login/page.tsx`
+- `app/components/auth/RegisterForm.tsx`
+- `app/components/auth/LoginForm.tsx`
 
-## Stage 6 — Kontrola funkcjonowania rejestracji i logowania
-- Cel: testy jednostkowe i smoke E2E dla auth flows.
-- Proponowane pliki:
-  - `tests/unit/header.test.tsx`.
-  - `tests/unit/auth.test.ts`.
-  - `tests/e2e/auth.spec.ts`.
-- Opis: scenariusze happy-path oraz walidacja pól.
+Backend:
+- `lib/auth.ts`
+- `lib/supabase.server.ts`
+- `supabase/migrations/000_init_users.sql`
+- `supabase/migrations/001_enable_rls_and_policies.sql`
+- rollbacki dla obu migracji
 
-## Stage 7 — Strona klubu (dashboard)
-- Cel: centralne miejsce zarządzania klubem.
-- Proponowane pliki:
-  - `app/club/[id]/page.tsx`.
-  - `app/club/[id]/layout.tsx`.
-  - `app/components/ClubDashboard/`.
-- Opis: karty Active voting, Next meeting, Invite members.
+Cel etapu:
+- uruchomienie szkieletu aplikacji i przygotowanie miejsca na dalsze etapy.
 
-## Stage 8 — Tworzenie klubu
-- Cel: formularz tworzenia klubu.
-- Proponowane pliki:
-  - `app/club/create/page.tsx`.
-  - `app/components/club/CreateClubForm.tsx`.
-- Opis: po sukcesie redirect do `app/club/[id]`.
+### 6.2 Stage 2 — Strona główna
+Frontend:
+- `app/page.tsx` jako landing
+- `app/components/Header.tsx`
+- `app/components/Hero.tsx`
+- `app/components/FeatureCards.tsx`
+- `app/components/Footer.tsx`
 
-## Stage 9 — Dołączanie do klubu (zaproszenia/kody)
-- Cel: invite via email + generowany kod/link.
-- Proponowane pliki:
-  - `app/club/join/page.tsx`.
-  - `app/club/[id]/invite/page.tsx`.
-  - `app/components/club/JoinClubForm.tsx`.
-  - `app/components/club/CreateInviteForm.tsx`.
-  - `app/api/club-invites/route.ts`.
-  - `app/api/club-invites/preview/route.ts`.
-  - `app/api/club-invites/redeem/route.ts`.
-  - `lib/club-invite.server.ts`.
-  - `lib/invite.ts`.
-  - `docs/contracts/club-invite.json`.
-  - `supabase/migrations/003_create_club_invites.sql`.
-  - `supabase/migrations/003_create_club_invites_rollback.sql`.
-- Opis: generowanie linku, wysyłka maila, flow akceptacji.
+Backend:
+- brak nowych struktur DB; tylko placeholdery wspierające routing.
 
-## Stage 10 — Role: członek i prowadzący
-- Cel: model ról, migracje DB i UI zarządzania rolami.
-- Proponowane pliki:
-  - `supabase/migrations/NN_create_roles.sql`.
-  - `lib/db/roles.ts`.
-  - `app/club/[id]/members/manage.tsx`.
-- Opis: przygotować RLS i polityki oraz UI do nadawania ról.
+Cel etapu:
+- strona główna z CTA do rejestracji.
 
-## Stage 11 — Brakujące funkcje członkostwa
-- Cel: CRUD członkostwa (akceptacja, opuszczanie, role).
-- Proponowane pliki:
-  - `app/api/membership/route.ts`.
-  - `app/club/[id]/members/[memberId]/actions.tsx`.
+### 6.3 Stage 3 — Rejestracja
+Frontend:
+- `app/register/page.tsx`
+- `app/components/auth/RegisterForm.tsx`
 
-## Stage 12 — Propozycje książki
-- Cel: formularz dodawania propozycji książek.
-- Proponowane pliki:
-  - `app/club/[id]/voting/create/page.tsx`.
-  - `app/components/voting/ProposalList.tsx`.
+Backend:
+- `lib/auth.ts` jako punkt integracji
 
-## Stage 13 — Głosowanie
-- Cel: oddawanie głosów i agregacja wyników.
-- Proponowane pliki:
-  - `app/club/[id]/voting/[votingId]/page.tsx`.
-  - `app/api/votes/route.ts`.
+Testy:
+- unit walidacji formularza
+- smoke E2E rejestracji
 
-## Stage 14 — Propozycje terminu i głosowanie na termin
-- Cel: scheduling + vote-on-date.
-- Proponowane pliki:
-  - `app/club/[id]/meetings/create/page.tsx`.
-  - `app/club/[id]/meetings/[meetingId]/page.tsx`.
+### 6.4 Stage 4 — Logowanie
+Frontend:
+- `app/login/page.tsx`
+- `app/components/auth/LoginForm.tsx`
 
-## Stage 15 — Powiadomienia e-mail
-- Cel: opcjonalne powiadomienia o głosowaniach i spotkaniach.
-- Proponowane pliki:
-  - `app/api/notifications/route.ts`.
-  - `lib/notifications.ts`.
-  - `supabase/functions/email-send` (opcjonalnie).
+Backend:
+- integracja z `lib/auth.ts`
 
-## Stage 16 — Prosty chat
-- Cel: realtime chat per klub (history + wysyłka).
-- Proponowane pliki:
-  - `app/club/[id]/chat/page.tsx`.
-  - `app/api/chat/route.ts` lub integracja Supabase Realtime.
+Testy:
+- unit dla logowania
+- smoke E2E logowania
 
-## Stage 17 — Dashboards, lokalizacja i analytics
-- Cel: metrics, i18n i overview dashboard.
-- Proponowane pliki:
-  - `app/dashboard/overview/page.tsx`.
-  - `lib/analytics.ts`.
-  - `locales/pl/*.json`.
+### 6.5 Stage 5 — Minimalny backend auth
+Backend:
+- `lib/auth.ts`
+- `lib/supabase.server.ts`
+- `supabase/migrations/000_init_users.sql`
+- `supabase/migrations/001_enable_rls_and_policies.sql`
+- rollbacki do obu migracji
 
-## Stage 18 — QA, load tests, production checklist
-- Cel: testy obciążeniowe i checklist release.
-- Proponowane pliki:
-  - `tests/load/loadtest.k6.js`.
-  - `docs/release-checklist.md`.
+Cel etapu:
+- minimalna baza auth do obsługi kolejnych ekranów.
 
----
+### 6.6 Stage 6 — Kontrola działania auth
+Testy:
+- `tests/unit/header.test.tsx`
+- `tests/unit/auth.test.ts`
+- `tests/e2e/auth.spec.ts`
 
-## Current Repo Structure
+Cel etapu:
+- potwierdzić, że rejestracja i logowanie działają stabilnie.
 
-Aktualna struktura repo:
+### 6.7 Stage 7 — Strona klubu
+Frontend:
+- `app/club/[id]/page.tsx`
+- `app/club/[id]/layout.tsx`
+- `app/components/ClubDashboard/*`
 
-```
-Book-Club-Saas-3.0/
-├─ README.md
-├─ .env.example
-├─ AGENTS.md
-├─ CLAUDE.md
-├─ app/
-│  ├─ globals.css
-│  ├─ layout.tsx
-│  ├─ page.tsx
-│  ├─ login/
-│  │  └─ page.tsx
-│  ├─ register/
-│  │  └─ page.tsx
-│  ├─ club/
-│  │  └─ [id]/
-│  └─ components/
-│     ├─ FeatureCards.tsx
-│     ├─ Footer.tsx
-│     ├─ Header.tsx
-│     ├─ Hero.tsx
-│     └─ auth/
-│        ├─ LoginForm.tsx
-│        └─ RegisterForm.tsx
-├─ docs/
-│  ├─ README.md
-│  ├─ architecture/
-│  ├─ business/
-│  ├─ implemented/
-│  ├─ plans/
-│  ├─ roles/
-│  ├─ tech/
-│  └─ workflows/
-├─ lib/
-│  ├─ auth.ts
-│  └─ supabase.server.ts
-├─ public/
-├─ supabase/
-│  └─ migrations/
-│     ├─ 000_init_users.sql
-│     ├─ 000_init_users_rollback.sql
-│     ├─ 001_enable_rls_and_policies.sql
-│     ├─ 001_enable_rls_and_policies_rollback.sql
-│     └─ README.md
-├─ tests/
-│  └─ unit/
-│     └─ header.test.tsx
-├─ vitest.config.ts
-├─ vitest.setup.ts
-├─ eslint.config.mjs
-├─ next-env.d.ts
-├─ next.config.ts
-├─ package-lock.json
-├─ package.json
-├─ postcss.config.mjs
-├─ temp_page.html
-└─ tsconfig.json
-```
+Backend:
+- `lib/club-dashboard.server.ts`
+- `lib/dashboard-clubs.ts`
 
-## Zasady i uzasadnienie
+Cel etapu:
+- dashboard klubu z sekcjami Active voting, Next meeting i Invite members.
 
-- `app/` jest jedynym źródłem tras App Router i zawiera zarówno route'y, jak i współdzielone UI.
-- `app/components/` trzyma wspólne komponenty, a `app/components/auth/` zawiera formularze logowania i rejestracji.
-- `lib/` przechowuje pomocnicze wrappery i minimalne placeholdery backendowe.
-- `supabase/migrations/` zawiera SQL migrations, rollbacki oraz własny README z instrukcją uruchamiania.
-- `tests/` dzieli testy unit, a konfiguracja Vitest siedzi w root repo.
-- Pliki dokumentacyjne (`README.md`, `docs/`) są częścią repo i powinny odzwierciedlać rzeczywisty stan implementacji.
+### 6.8 Stage 8 — Tworzenie klubu
+Frontend:
+- `app/club/create/page.tsx`
+- `app/components/club/CreateClubForm.tsx`
 
-## Rekomendowane zmienne środowiskowe
+Backend:
+- `lib/club-create.ts`
+- `lib/db/` helpery tworzenia klubu
+- migracje tworzące `clubs`
 
-```
+Cel etapu:
+- tworzenie klubu i redirect do jego panelu.
+
+### 6.9 Stage 9 — Dołączanie do klubu
+Frontend:
+- `app/club/join/page.tsx`
+- `app/club/[id]/invite/page.tsx`
+- `app/components/club/JoinClubForm.tsx`
+- `app/components/club/CreateInviteForm.tsx`
+
+Backend:
+- `app/api/club-invites/route.ts`
+- `app/api/club-invites/preview/route.ts`
+- `app/api/club-invites/redeem/route.ts`
+- `lib/club-invite.server.ts`
+- `lib/invite.ts`
+- `docs/contracts/club-invite.json`
+- `supabase/migrations/003_create_club_invites.sql`
+- `supabase/migrations/003_create_club_invites_rollback.sql`
+
+Cel etapu:
+- invite by link/code, preview zaproszenia i redeem.
+
+### 6.10 Stage 10 — Role członek i prowadzący
+Frontend:
+- `app/club/[id]/members/manage/page.tsx`
+- `app/components/club/ClubMembersRolesClient.tsx`
+- `app/components/club/MembersRoleManager.tsx`
+
+Backend:
+- `lib/db/roles.ts`
+- `supabase/migrations/004_add_club_member_roles.sql`
+- `supabase/migrations/004_add_club_member_roles_rollback.sql`
+
+Cel etapu:
+- zarządzanie rolami host/member oraz ich egzekwowanie przez RLS.
+
+### 6.11 Stage 11 — Brakujące funkcje członkostwa
+Frontend:
+- `app/club/[id]/members/[memberId]/actions/page.tsx`
+- `app/components/club/MembershipActions.tsx`
+
+Backend:
+- `app/api/membership/route.ts`
+- `lib/membership.ts`
+- `lib/db/membership.ts`
+- `supabase/migrations/005_update_membership_flow.sql`
+- `supabase/migrations/005_update_membership_flow_rollback.sql`
+
+Cel etapu:
+- akceptacja, opuszczenie klubu i własna nazwa członka.
+
+### 6.12 Stage 12 — Propozycje książki
+Frontend:
+- `app/club/[id]/voting/create/page.tsx`
+- `app/components/voting/ProposalList.tsx`
+
+Backend:
+- helpery propozycji książek i model danych dla głosowania.
+- Szczegółowy plan Stage 12: [docs/plans/PLAN_stage12_propozycje_ksiazek.md](docs/plans/PLAN_stage12_propozycje_ksiazek.md).
+
+### 6.13 Stage 13 — Głosowanie
+Frontend:
+- `app/club/[id]/voting/[votingId]/page.tsx`
+
+Backend:
+- `app/api/votes/route.ts`
+- RLS i constrainty dla głosów.
+
+### 6.14 Stage 14 — Propozycje terminu i głosowanie na termin
+Frontend:
+- `app/club/[id]/meetings/create/page.tsx`
+- `app/club/[id]/meetings/[meetingId]/page.tsx`
+
+Backend:
+- helpery terminów spotkań i głosowania na termin.
+
+### 6.15 Stage 15 — Powiadomienia e-mail
+Frontend:
+- opcjonalne UI preferencji powiadomień.
+
+Backend:
+- `app/api/notifications/route.ts`
+- `lib/notifications.ts`
+- opcjonalnie `supabase/functions/email-send`
+
+### 6.16 Stage 16 — Prosty chat
+Frontend:
+- `app/club/[id]/chat/page.tsx`
+
+Backend:
+- `app/api/chat/route.ts` lub integracja Supabase Realtime.
+
+### 6.17 Stage 17 — Dashboard, lokalizacja i analytics
+Frontend:
+- `app/dashboard/overview/page.tsx`
+
+Backend:
+- `lib/analytics.ts`
+- `locales/pl/*.json`
+
+### 6.18 Stage 18 — QA, load tests, production checklist
+Testy i dokumentacja:
+- `tests/load/loadtest.k6.js`
+- `docs/release-checklist.md`
+
+Cel etapu:
+- końcowa weryfikacja jakości i checklist release.
+
+## 7. Rekomendowana kolejność prac
+1. Zbudować i utrzymać skeleton aplikacji w Stage 1.
+2. Domknąć landing i auth flow w Stage 2-6.
+3. Dostarczyć dashboard klubu i tworzenie klubu w Stage 7-8.
+4. Rozwinąć invite/join flow w Stage 9.
+5. Dodać role członek/prowadzący w Stage 10.
+6. Domknąć funkcje członkostwa w Stage 11.
+7. Kontynuować kolejno Stage 12-18 bez zmiany wcześniejszych kontraktów.
+
+## 8. Kryteria akceptacji
+- Każdy stage ma przypisane konkretne pliki frontendowe i backendowe.
+- Każdy stage ma wskazane testy lub weryfikację lokalną.
+- Plan jest zgodny z aktualną strukturą repozytorium.
+- Plan odwołuje się do istniejących planów stage'ów, a nie duplikuje ich pełnej implementacji.
+- Stage 11 i późniejsze plany mogą używać tego dokumentu jako mapy struktury plików.
+
+## 9. Testy
+- Unit: minimalny test dla komponentu startowego `Header`.
+- Unit: auth UI w Stage 3-4.
+- Unit: dashboard i role w Stage 7 i 10.
+- Integracyjne: API dla invite/join/membership.
+- E2E: auth, club creation, invite/join, membership, voting.
+
+## 10. Preconditions
+- Repozytorium jest otwarte jako pojedynczy projekt Next.js.
+- `.env.example` istnieje i zawiera zmienne Supabase.
+- Włączony jest lokalny workflow Supabase lub dostęp do remote DB.
+- Stage 1-4 mogą działać nawet bez backendu produkcyjnego.
+- Stage 5+ zakładają gotowe środowisko Supabase.
+
+## 11. `.env.example`
+Docelowy minimum dla MVP:
+
+```env
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 SUPABASE_DB_URL=
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_APP_ENV=development
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=
+INVITE_TOKEN_TTL_HOURS=168
 ```
 
-## Wskazówki implementacyjne
+## 12. Komendy lokalne
+```powershell
+npm install
+npm run dev
+npm run lint
+npm run test
+npx playwright test
+```
 
-- Najpierw dowoź UI w `app/`, potem dodawaj backend tylko w zakresie potrzebnym do obsługi tego UI.
-- Placeholdery backendowe trzymaj w `lib/auth.ts` i `lib/supabase.server.ts` do czasu, aż dany ekran rzeczywiście ich potrzebuje.
-- Rozbudowuj `supabase/migrations/` etapami, zamiast wrzucać cały model danych naraz.
-- Utrzymuj testy unit i smoke E2E równolegle z rozwojem frontend/backend.
+```bash
+npm install
+npm run dev
+npm run lint
+npm run test
+npx playwright test
+```
 
-## Acceptance criteria dla obecnej struktury
+## 13. Zmiany DB / migracje
+Ten plan nie definiuje jednej nowej tabeli, tylko mapuje etapy, które już ją wykorzystują. Mimo to etapowy model migracji jest częścią struktury MVP:
 
-- `npm run dev` uruchamia aplikację bez błędów.
-- `app/page.tsx`, `app/register/page.tsx` i `app/login/page.tsx` renderują oczekiwane komponenty.
-- `.env.example` istnieje i zawiera wymagane zmienne.
-- `supabase/migrations/` zawiera pliki SQL i `README.md`.
-- `tests/unit/` zawiera przynajmniej test dla `Header`.
+- Stage 5: `000_init_users.sql`, `001_enable_rls_and_policies.sql`.
+- Stage 8: migracja tworząca `clubs`.
+- Stage 9: `003_create_club_invites.sql`.
+- Stage 10: `004_add_club_member_roles.sql`.
+- Stage 11: `005_update_membership_flow.sql`.
 
-## Branch i commit
+Przykładowy wzorzec dla dalszych migracji:
 
-- Branch: `main`
-- Commit: `chore(stage1): complete docs and testing setup`
+```sql
+BEGIN;
 
-## PYTANIA / ZAŁOŻENIA
+-- zmiana schematu dla konkretnego etapu MVP
+-- dodaj kolumny, indeksy albo polityki RLS
 
-- Założono jednolitą aplikację Next.js, nie monorepo.
-- Shared UI pozostaje w `app/components/`, bo repo jest nadal niewielkie.
+COMMIT;
+```
 
-## Stage 1 — Szczegółowy plan
+Przykładowa komenda do zastosowania migracji:
 
-Szczegółowy plan Stage 1 został wyodrębniony do pliku: [docs/plans/PLAN_stage1_bazowa_wersja_aplikacji.md](docs/plans/PLAN_stage1_bazowa_wersja_aplikacji.md).
+```powershell
+npx supabase db push --db-url "$env:SUPABASE_DB_URL"
+```
+
+## 14. Branch, commit i PR
+- Branch planu: `feature/plans/mvp-file-structure-plan`
+- Commit planu: `docs(plans): add detailed mvp file structure plan`
+- PR title: `PLAN: mvp-file-structure-plan — detailed implementation roadmap`
+
+## 15. Acceptance E2E test (krok po kroku)
+```powershell
+npm run dev
+```
+
+```powershell
+npx playwright test tests/e2e/auth.spec.ts
+```
+
+```powershell
+npx playwright test tests/e2e/club-create.spec.ts
+```
+
+```powershell
+npx playwright test tests/e2e/club-invite.spec.ts
+```
+
+```powershell
+npx playwright test tests/e2e/membership.spec.ts
+```
+
+```bash
+npm run dev
+```
+
+```bash
+npx playwright test tests/e2e/auth.spec.ts
+```
+
+```bash
+npx playwright test tests/e2e/club-create.spec.ts
+```
+
+```bash
+npx playwright test tests/e2e/club-invite.spec.ts
+```
+
+```bash
+npx playwright test tests/e2e/membership.spec.ts
+```
+
+## 16. Gotowe do review?
+- Preconditions są opisane.
+- Kroki implementacji mapują Stage 1-18 do konkretnych plików.
+- Sekcja migracji pokazuje powiązanie stage'ów z DB.
+- `.env.example` ma docelowy zestaw zmiennych.
+- Acceptance E2E ma kopiowalne komendy.
+- Branch, commit i PR title są zdefiniowane.
+
+## 17. PYTANIA / ZAŁOŻENIA
+- Założenie: Stage 1-18 pozostają numerycznie spójne z obecnymi planami w `docs/plans/`.
+- Założenie: Stage 11 opiera się o mapę struktury z tego dokumentu, a nie o osobny model etapów.
+- Założenie: backend rośnie etapami i nie wymaga monolitycznej migracji schematu na start.
+- Założenie: kiedy dany stage zostanie wdrożony, jego szczegółowy plan trafia do `docs/plans/PLAN_<stage>.md`, a wynik do `docs/implemented/`.
