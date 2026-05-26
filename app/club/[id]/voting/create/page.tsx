@@ -1,6 +1,5 @@
 import Link from "next/link";
 import ProposalList from "../../../../components/voting/ProposalList";
-import type { BookProposal } from "../../../../components/voting/types";
 import { getClubDashboardById } from "../../../../../lib/club-dashboard.server";
 
 type ClubVotingCreatePageProps = {
@@ -9,68 +8,9 @@ type ClubVotingCreatePageProps = {
   }>;
 };
 
-function formatDemoDate(date: Date) {
-  return new Intl.DateTimeFormat("pl-PL", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  }).format(date);
-}
-
-function buildDemoProposals(clubName: string): BookProposal[] {
-  const now = new Date();
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  const twoDaysAgo = new Date(now);
-  twoDaysAgo.setDate(now.getDate() - 2);
-
-  return [
-    {
-      id: "proposal-demo-1",
-      title: "Wzgórze psów",
-      author: "Nina Lykke",
-      coverImageUrl: "https://images.unsplash.com/photo-1455885666463-5c3d1c8b0f4c?auto=format&fit=crop&w=900&q=80",
-      coverImageName: "wzgorze-psow.jpg",
-      description: `Książka do spokojnej dyskusji o relacjach i napięciu. Dobra propozycja dla klubu ${clubName}.`,
-      createdBy: "demo-host",
-      createdByLabel: "Ty",
-      createdAt: formatDemoDate(twoDaysAgo),
-      updatedAt: formatDemoDate(twoDaysAgo),
-      canManage: true,
-    },
-    {
-      id: "proposal-demo-2",
-      title: "Normalni ludzie",
-      author: "Sally Rooney",
-      coverImageUrl: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=900&q=80",
-      coverImageName: "normalni-ludzie.jpg",
-      description: "Krótka, intensywna historia, która dobrze działa jako lżejszy wybór po poprzednim miesiącu.",
-      createdBy: "demo-member",
-      createdByLabel: "Kasia",
-      createdAt: formatDemoDate(yesterday),
-      updatedAt: formatDemoDate(yesterday),
-      canManage: true,
-    },
-    {
-      id: "proposal-demo-3",
-      title: "Opowieść podręcznej",
-      author: "Margaret Atwood",
-      coverImageUrl: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=900&q=80",
-      coverImageName: "opowiesc-podrecznej.jpg",
-      description: "Mocniejszy temat na głosowanie, jeśli klub szuka bardziej dyskusyjnej lektury.",
-      createdBy: "demo-member-2",
-      createdByLabel: "Marek",
-      createdAt: formatDemoDate(now),
-      updatedAt: formatDemoDate(now),
-      canManage: true,
-    },
-  ];
-}
-
 export default async function ClubVotingCreatePage({ params }: ClubVotingCreatePageProps) {
   const { id } = await params;
   const club = await getClubDashboardById(id);
-  const initialProposals = buildDemoProposals(club.name);
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(15,23,42,0.12),_transparent_32%),linear-gradient(180deg,#f8fafc_0%,#eef4ff_100%)] px-4 py-6 text-slate-900 sm:px-6 lg:px-8 lg:py-10">
@@ -120,7 +60,7 @@ export default async function ClubVotingCreatePage({ params }: ClubVotingCreateP
           </div>
         </section>
 
-        <ProposalList clubId={club.id} clubName={club.name} initialProposals={initialProposals} />
+        <ProposalList clubId={club.id} clubName={club.name} />
       </div>
     </main>
   );

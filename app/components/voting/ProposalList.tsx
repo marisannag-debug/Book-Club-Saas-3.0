@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { getSupabaseBrowserClient } from "../../../lib/supabase.browser";
 import ProposalCard from "./ProposalCard";
 import ProposalForm from "./ProposalForm";
 import {
@@ -17,6 +18,45 @@ type ProposalListProps = {
   userCanManageProposals?: boolean;
 };
 
+type ProposalsApiResponse =
+  | {
+      ok: true;
+      status: 200;
+      clubId: string;
+      items: BookProposal[];
+    }
+  | {
+      ok: false;
+      status: number;
+      message: string;
+    };
+
+type ProposalMutationResponse =
+  | {
+      ok: true;
+      status: 200 | 201;
+      message: string;
+      proposal: BookProposal;
+    }
+  | {
+      ok: false;
+      status: number;
+      message: string;
+    };
+
+type ProposalDeleteResponse =
+  | {
+      ok: true;
+      status: 200;
+      message: string;
+      proposalId: string;
+    }
+  | {
+      ok: false;
+      status: number;
+      message: string;
+    };
+
 const EMPTY_DRAFT: ProposalDraft = {
   title: "",
   author: "",
@@ -26,8 +66,28 @@ const EMPTY_DRAFT: ProposalDraft = {
   description: "",
 };
 
+const EMPTY_INITIAL_PROPOSALS: BookProposal[] = [];
+
 function createProposalId() {
   return `proposal-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+}
+
+function fileToDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+
+      reject(new Error("Nie udało się wczytać grafiki okładki."));
+    };
+
+    reader.onerror = () => reject(new Error("Nie udało się wczytać grafiki okładki."));
+    reader.readAsDataURL(file);
+  });
 }
 
 function buildStatusMessage(action: "add" | "edit" | "delete" | "reset") {
@@ -100,7 +160,7 @@ function buildProposal(clubId: string, draft: ProposalDraft, canManage: boolean)
 export default function ProposalList({
   clubId,
   clubName,
-  initialProposals = [],
+  initialProposals = EMPTY_INITIAL_PROPOSALS,
   userCanManageProposals = true,
 }: ProposalListProps) {
   const [proposals, setProposals] = useState<BookProposal[]>(initialProposals);
@@ -109,14 +169,223 @@ export default function ProposalList({
   const [statusMessage, setStatusMessage] = useState("Dodaj propozycje książek dla tego klubu.");
   const [editingProposalId, setEditingProposalId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const coverObjectUrlRef = useRef<string | null>(null);
+  const isMountedRef = useRef(true);
+
+  async function refreshProposals(options?: { showLoading?: boolean; message?: string }) {
+    if (options?.showLoading) {
+      setIsLoading(true);
+    }
+
+    setStatusMessage("Wczytujemy propozycje książek...");
+
+    try {
+      const token = await getAccessToken();
+
+      if (!isMountedRef.current) {
+        return false;
+      }
+
+      setAccessToken(token);
+
+      if (!token) {
+        setStatusMessage("Zaloguj się, aby zobaczyć propozycje książek.");
+        setProposals(initialProposals);
+        return false;
+      }
+
+      const response = await fetch(`/api/book-proposals?clubId=${encodeURIComponent(clubId)}`, {
+        cache: "no-store",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const payload = (await response.json()) as ProposalsApiResponse;
+
+      if (!isMountedRef.current) {
+        return false;
+      }
+
+      if (!response.ok || !payload.ok) {
+        setStatusMessage(payload.message ?? "Nie udało się wczytać propozycji książek.");
+        setProposals(initialProposals);
+        return false;
+      }
+
+      setProposals(payload.items);
+      setStatusMessage(
+        options?.message ??
+          (payload.items.length > 0
+            ? "Propozycje książek są gotowe."
+            : "Dodaj pierwszą książkę, aby rozpocząć listę do głosowania."),
+      );
+
+      return true;
+    } catch {
+      if (isMountedRef.current) {
+        setStatusMessage("Nie udało się wczytać propozycji książek. Spróbuj ponownie.");
+        setProposals(initialProposals);
+      }
+
+      return false;
+    } finally {
+      if (options?.showLoading && isMountedRef.current) {
+        setIsLoading(false);
+      }
+    }
+  }
 
   useEffect(() => {
-    setProposals(initialProposals);
-  }, [initialProposals]);
+    isMountedRef.current = true;
+
+    void refreshProposals({ showLoading: true });
+
+    return () => {
+      isMountedRef.current = false;
+
+      if (coverObjectUrlRef.current?.startsWith("blob:")) {
+        URL.revokeObjectURL(coverObjectUrlRef.current);
+      }
+    };
+  }, [clubId, initialProposals]);
 
   const isEditing = editingProposalId !== null;
   const remainingCharacters = PROPOSAL_DESCRIPTION_MAX_LENGTH - draft.description.length;
+
+  async function getAccessToken() {
+    if (accessToken) {
+      return accessToken;
+    }
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token ?? null;
+
+      setAccessToken(token);
+
+      return token;
+    } catch {
+      return null;
+    }
+  }
+
+  function buildProposalPayload(overrides: Partial<ProposalDraft> = {}) {
+    return {
+      title: (overrides.title ?? draft.title).trim(),
+      author: (overrides.author ?? draft.author).trim(),
+      description: (overrides.description ?? draft.description).trim(),
+      coverImageUrl: (overrides.coverImagePreviewUrl ?? draft.coverImagePreviewUrl).trim(),
+      coverImageName: (overrides.coverImageName ?? draft.coverImageName).trim(),
+    };
+  }
+
+  async function uploadCoverIfNeeded() {
+    if (draft.coverImageFile) {
+      return {
+        coverImageUrl: await fileToDataUrl(draft.coverImageFile),
+        coverImageName: draft.coverImageFile.name,
+      };
+    }
+
+    return {
+      coverImageUrl: draft.coverImagePreviewUrl.trim(),
+      coverImageName: draft.coverImageName.trim(),
+    };
+  }
+
+  function buildProposalFormData() {
+    const formData = new FormData();
+    const title = draft.title.trim();
+    const author = draft.author.trim();
+    const description = draft.description.trim();
+
+    formData.set("clubId", clubId);
+    formData.set("title", title);
+    formData.set("author", author);
+    formData.set("description", description);
+
+    if (draft.coverImageFile) {
+      formData.set("coverImageFile", draft.coverImageFile);
+    } else {
+      formData.set("coverImageUrl", draft.coverImagePreviewUrl.trim());
+      formData.set("coverImageName", draft.coverImageName.trim());
+    }
+
+    return formData;
+  }
+
+  async function requestCreateProposal() {
+    const token = await getAccessToken();
+
+    if (!token) {
+      return {
+        ok: false as const,
+        status: 401,
+        message: "Zaloguj się, aby dodać propozycję książki.",
+      };
+    }
+
+    const response = await fetch("/api/book-proposals", {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: buildProposalFormData(),
+    });
+
+    return (await response.json()) as ProposalMutationResponse;
+  }
+
+  async function requestUpdateProposal(proposalId: string) {
+    const token = await getAccessToken();
+
+    if (!token) {
+      return {
+        ok: false as const,
+        status: 401,
+        message: "Zaloguj się ponownie, aby zapisać zmiany.",
+      };
+    }
+
+    const response = await fetch(`/api/book-proposals/${proposalId}`, {
+      method: "PATCH",
+      cache: "no-store",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: buildProposalFormData(),
+    });
+
+    return (await response.json()) as ProposalMutationResponse;
+  }
+
+  async function requestDeleteProposal(proposalId: string) {
+    const token = await getAccessToken();
+
+    if (!token) {
+      return {
+        ok: false as const,
+        status: 401,
+        message: "Zaloguj się ponownie, aby usunąć propozycję.",
+      };
+    }
+
+    const response = await fetch(`/api/book-proposals/${proposalId}`, {
+      method: "DELETE",
+      cache: "no-store",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return (await response.json()) as ProposalDeleteResponse;
+  }
 
   function updateField<K extends keyof ProposalDraft>(field: K, value: ProposalDraft[K]) {
     setDraft((current) => ({
@@ -131,6 +400,11 @@ export default function ProposalList({
   }
 
   function handleCoverSelect(file: File | null) {
+    if (coverObjectUrlRef.current?.startsWith("blob:")) {
+      URL.revokeObjectURL(coverObjectUrlRef.current);
+      coverObjectUrlRef.current = null;
+    }
+
     if (!file) {
       setDraft((current) => ({
         ...current,
@@ -143,6 +417,7 @@ export default function ProposalList({
     }
 
     const previewUrl = URL.createObjectURL(file);
+    coverObjectUrlRef.current = previewUrl;
 
     setDraft((current) => ({
       ...current,
@@ -155,6 +430,11 @@ export default function ProposalList({
   }
 
   function resetForm(message = buildStatusMessage("reset")) {
+    if (coverObjectUrlRef.current?.startsWith("blob:")) {
+      URL.revokeObjectURL(coverObjectUrlRef.current);
+      coverObjectUrlRef.current = null;
+    }
+
     setDraft(EMPTY_DRAFT);
     setErrors({});
     setEditingProposalId(null);
@@ -163,6 +443,11 @@ export default function ProposalList({
   }
 
   function startEdit(proposal: BookProposal) {
+    if (coverObjectUrlRef.current?.startsWith("blob:")) {
+      URL.revokeObjectURL(coverObjectUrlRef.current);
+      coverObjectUrlRef.current = null;
+    }
+
     setDraft({
       title: proposal.title,
       author: proposal.author,
@@ -177,23 +462,39 @@ export default function ProposalList({
     titleInputRef.current?.focus();
   }
 
-  function handleDelete(proposalId: string) {
-    setProposals((current) => current.filter((proposal) => proposal.id !== proposalId));
-    setStatusMessage(buildStatusMessage("delete"));
+  async function handleDelete(proposalId: string) {
+    setIsSubmitting(true);
+    setStatusMessage("Usuwamy propozycję...");
 
-    setEditingProposalId((currentEditingId) => {
-      if (currentEditingId === proposalId) {
-        setDraft(EMPTY_DRAFT);
-        setErrors({});
-        return null;
+    try {
+      const result = await requestDeleteProposal(proposalId);
+
+      if (!result.ok) {
+        setStatusMessage(result.message);
+        return;
       }
 
-      return currentEditingId;
-    });
+      if (editingProposalId === proposalId) {
+        setDraft(EMPTY_DRAFT);
+        setErrors({});
+        setEditingProposalId(null);
+      }
+
+      await refreshProposals({ message: result.message });
+    } catch {
+      setStatusMessage("Nie udało się usunąć propozycji. Spróbuj ponownie.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (isLoading) {
+      setStatusMessage("Poczekaj, aż propozycje książek zostaną wczytane.");
+      return;
+    }
 
     const nextErrors = validateDraft(draft);
 
@@ -205,39 +506,25 @@ export default function ProposalList({
 
     setIsSubmitting(true);
 
-    setProposals((current) => {
-      if (editingProposalId) {
-        const existingProposal = current.find((proposal) => proposal.id === editingProposalId);
+    try {
+      const result = editingProposalId
+        ? await requestUpdateProposal(editingProposalId)
+        : await requestCreateProposal();
 
-        if (!existingProposal) {
-          return current;
-        }
-
-        const updatedProposal: BookProposal = {
-          ...existingProposal,
-          title: draft.title.trim(),
-          author: draft.author.trim(),
-          coverImageUrl: draft.coverImagePreviewUrl.trim(),
-          coverImageName: draft.coverImageName.trim(),
-          description: draft.description.trim(),
-          updatedAt: new Date().toLocaleDateString("pl-PL", {
-            day: "2-digit",
-            month: "long",
-            year: "numeric",
-          }),
-        };
-
-        return current.map((proposal) => (proposal.id === editingProposalId ? updatedProposal : proposal));
+      if (!result.ok) {
+        setStatusMessage(result.message);
+        return;
       }
 
-      return [buildProposal(clubId, draft, userCanManageProposals), ...current];
-    });
-
-    setEditingProposalId(null);
-    setDraft(EMPTY_DRAFT);
-    setErrors({});
-    setStatusMessage(buildStatusMessage(editingProposalId ? "edit" : "add"));
-    setIsSubmitting(false);
+      setEditingProposalId(null);
+      setDraft(EMPTY_DRAFT);
+      setErrors({});
+      await refreshProposals({ message: result.message });
+    } catch {
+      setStatusMessage(editingProposalId ? "Nie udało się zaktualizować propozycji." : "Nie udało się dodać propozycji.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -257,12 +544,19 @@ export default function ProposalList({
         </p>
       </div>
 
+      {isLoading ? (
+        <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm leading-6 text-slate-600">
+          Wczytujemy propozycje książek...
+        </div>
+      ) : null}
+
       <ProposalForm
         clubName={clubName}
         draft={draft}
         errors={errors}
         statusMessage={statusMessage}
         isEditing={isEditing}
+        isLoading={isLoading}
         isSubmitting={isSubmitting}
         charactersLeft={remainingCharacters}
         titleInputRef={titleInputRef}

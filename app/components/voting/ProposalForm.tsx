@@ -8,6 +8,7 @@ type ProposalFormProps = {
   errors: ProposalFieldErrors;
   statusMessage: string;
   isEditing: boolean;
+  isLoading: boolean;
   isSubmitting: boolean;
   charactersLeft: number;
   titleInputRef: React.RefObject<HTMLInputElement | null>;
@@ -24,6 +25,7 @@ export default function ProposalForm({
   errors,
   statusMessage,
   isEditing,
+  isLoading,
   isSubmitting,
   charactersLeft,
   titleInputRef,
@@ -159,10 +161,10 @@ export default function ProposalForm({
       <div className="flex flex-wrap gap-3">
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isLoading}
           className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950/20"
         >
-          {isSubmitting ? "Zapisywanie..." : isEditing ? "Zapisz zmiany" : "Dodaj propozycję"}
+          {isLoading ? "Wczytywanie..." : isSubmitting ? "Zapisywanie..." : isEditing ? "Zapisz zmiany" : "Dodaj propozycję"}
         </button>
         {isEditing ? (
           <button
