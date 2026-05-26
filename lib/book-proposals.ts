@@ -117,6 +117,14 @@ export function mapBookProposalViewModel(
   const isOwner = userId === row.created_by;
   const isHost = userRole === "host";
 
+  const formatDate = (isoString: string) => {
+    try {
+      return isoString.split("T")[0]; // Zwraca YYYY-MM-DD
+    } catch {
+      return isoString;
+    }
+  };
+
   return {
     id: row.id,
     clubId: row.club_id,
@@ -127,8 +135,8 @@ export function mapBookProposalViewModel(
     coverImageName: row.cover_image_name ?? "",
     createdBy: row.created_by,
     createdByLabel: isOwner ? "Ty" : "Inny klubowicz",
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: formatDate(row.created_at),
+    updatedAt: formatDate(row.updated_at),
     canEdit: isOwner || isHost,
     canDelete: isOwner || isHost,
   };
