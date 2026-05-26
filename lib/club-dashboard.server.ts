@@ -107,8 +107,6 @@ export async function getClubDashboardById(id: string): Promise<ClubDashboardMod
         activeVoting,
       };
     }
-      };
-    }
   } catch {
     // Fall back to the local demo model when Supabase is unavailable.
   }
