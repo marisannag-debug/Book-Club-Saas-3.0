@@ -91,6 +91,12 @@ export async function getClubDashboardById(id: string): Promise<ClubDashboardMod
     if (!error && data) {
       const fallback = buildFallbackClubDashboard(normalizedId);
       const memberCount = await getRealClubMemberCount(data.id, data.created_by);
+      const proposalsCount = await getRealProposalsCount(data.id);
+
+      const activeVoting = fallback.activeVoting;
+      if (activeVoting && proposalsCount !== null) {
+        activeVoting.proposalsCount = proposalsCount;
+      }
 
       return {
         ...fallback,
@@ -98,6 +104,9 @@ export async function getClubDashboardById(id: string): Promise<ClubDashboardMod
         name: data.name,
         description: data.description ?? fallback.description,
         memberCount: memberCount ?? fallback.memberCount,
+        activeVoting,
+      };
+    }
       };
     }
   } catch {
@@ -126,4 +135,18 @@ async function getRealClubMemberCount(clubId: string, creatorId: string) {
   const hasCreator = activeMemberIds.has(creatorId);
 
   return activeMemberIds.size + (hasCreator ? 0 : 1);
+}
+
+async function getRealProposalsCount(clubId: string) {
+  const supabase = getSupabaseServerClient();
+  const { count, error } = await supabase
+    .from("book_proposals")
+    .select("*", { count: "exact", head: true })
+    .eq("club_id", clubId);
+
+  if (error) {
+    return null;
+  }
+
+  return count;
 }
