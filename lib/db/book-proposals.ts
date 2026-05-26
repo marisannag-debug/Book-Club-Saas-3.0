@@ -236,8 +236,8 @@ async function loadProposalById(proposalId: string) {
   return data as BookProposalRow;
 }
 
-function mapProposal(row: BookProposalRow): BookProposalViewModel {
-  return mapBookProposalViewModel(row);
+function mapProposal(row: BookProposalRow, userId?: string, userRole?: "host" | "member" | null): BookProposalViewModel {
+  return mapBookProposalViewModel(row, userId, userRole);
 }
 
 function buildBookProposalInsertPayload(input: BookProposalCreateInput, userId: string, clubId: string) {
@@ -341,7 +341,7 @@ export async function listBookProposals(clubId: string, accessToken: string): Pr
       ok: true,
       status: 200,
       clubId: access.club.id,
-      items: (data as BookProposalRow[]).map(mapProposal),
+      items: (data as BookProposalRow[]).map((row) => mapProposal(row, access.user.id, access.currentUserRole)),
     };
   } catch (error) {
     return toErrorResult(error);
@@ -373,7 +373,7 @@ export async function createBookProposal(input: BookProposalCreateInput, accessT
       ok: true,
       status: 201,
       message: "Propozycja książki została dodana.",
-      proposal: mapProposal(data as BookProposalRow),
+      proposal: mapProposal(data as BookProposalRow, access.user.id, access.currentUserRole),
     };
   } catch (error) {
     return toErrorResult(error);
@@ -418,7 +418,7 @@ export async function updateBookProposal(input: BookProposalUpdateInput, accessT
       ok: true,
       status: 200,
       message: "Propozycja książki została zaktualizowana.",
-      proposal: mapProposal(data as BookProposalRow),
+      proposal: mapProposal(data as BookProposalRow, access.user.id, access.currentUserRole),
     };
   } catch (error) {
     return toErrorResult(error);

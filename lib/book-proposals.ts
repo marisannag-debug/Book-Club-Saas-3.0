@@ -85,8 +85,11 @@ export type BookProposalViewModel = {
   coverImageUrl: string;
   coverImageName: string;
   createdBy: string;
+  createdByLabel: string;
   createdAt: string;
   updatedAt: string;
+  canEdit: boolean;
+  canDelete: boolean;
 };
 
 export function normalizeOptionalText(value?: string | null) {
@@ -95,18 +98,25 @@ export function normalizeOptionalText(value?: string | null) {
   return normalized.length > 0 ? normalized : null;
 }
 
-export function mapBookProposalViewModel(row: {
-  id: string;
-  club_id: string;
-  title: string;
-  author: string;
-  description: string | null;
-  cover_image_url: string | null;
-  cover_image_name: string | null;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-}): BookProposalViewModel {
+export function mapBookProposalViewModel(
+  row: {
+    id: string;
+    club_id: string;
+    title: string;
+    author: string;
+    description: string | null;
+    cover_image_url: string | null;
+    cover_image_name: string | null;
+    created_by: string;
+    created_at: string;
+    updated_at: string;
+  },
+  userId?: string,
+  userRole?: "host" | "member" | null,
+): BookProposalViewModel {
+  const isOwner = userId === row.created_by;
+  const isHost = userRole === "host";
+
   return {
     id: row.id,
     clubId: row.club_id,
@@ -116,7 +126,10 @@ export function mapBookProposalViewModel(row: {
     coverImageUrl: row.cover_image_url ?? "",
     coverImageName: row.cover_image_name ?? "",
     createdBy: row.created_by,
+    createdByLabel: isOwner ? "Ty" : "Inny klubowicz",
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    canEdit: isOwner || isHost,
+    canDelete: isOwner || isHost,
   };
 }

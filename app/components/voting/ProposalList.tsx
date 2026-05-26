@@ -154,6 +154,8 @@ function buildProposal(clubId: string, draft: ProposalDraft, canManage: boolean)
     createdAt: timestamp,
     updatedAt: timestamp,
     canManage,
+    canEdit: canManage,
+    canDelete: canManage,
   };
 }
 
@@ -580,7 +582,7 @@ export default function ProposalList({
               createdByLabel={proposal.createdByLabel}
               createdAt={proposal.createdAt}
               updatedAt={proposal.updatedAt}
-              canManage={userCanManageProposals && proposal.canManage}
+              canManage={userCanManageProposals && (proposal.canManage || proposal.canEdit || proposal.canDelete)}
               onEdit={() => startEdit(proposal)}
               onDelete={() => handleDelete(proposal.id)}
             />

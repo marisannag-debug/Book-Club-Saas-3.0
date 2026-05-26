@@ -23,4 +23,6 @@ export type BookProposal = {
   createdAt: string;
   updatedAt: string;
   canManage: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
 };
