@@ -100,7 +100,7 @@ export default function DashboardPage() {
               href="/club/create"
               className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
             >
-              Utwórz klub
+              Utwórz nowy klub
             </Link>
             <Link
               href="/club/join"

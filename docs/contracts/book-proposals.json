@@ -1,0 +1,100 @@
+{
+  "feature": "book-proposals",
+  "transport": "next-route-handler",
+  "routes": {
+    "GET /api/book-proposals?clubId=:clubId": {
+      "auth": "required",
+      "successStatus": 200,
+      "response": {
+        "ok": true,
+        "status": 200,
+        "clubId": "uuid",
+        "items": [
+          {
+            "id": "uuid",
+            "clubId": "uuid",
+            "title": "string",
+            "author": "string",
+            "description": "string",
+            "coverImageUrl": "string",
+            "coverImageName": "string",
+            "createdBy": "uuid",
+            "createdAt": "iso-date",
+            "updatedAt": "iso-date"
+          }
+        ]
+      },
+      "errors": [400, 401, 403, 404, 500]
+    },
+    "POST /api/book-proposals": {
+      "auth": "required",
+      "body": {
+        "clubId": "uuid",
+        "title": "string",
+        "author": "string",
+        "description": "string|null",
+        "coverImageUrl": "string|null",
+        "coverImageName": "string|null"
+      },
+      "successStatus": 201,
+      "response": {
+        "ok": true,
+        "status": 201,
+        "message": "Propozycja książki została dodana.",
+        "proposal": {
+          "id": "uuid",
+          "clubId": "uuid",
+          "title": "string",
+          "author": "string",
+          "description": "string",
+          "coverImageUrl": "string",
+          "coverImageName": "string",
+          "createdBy": "uuid",
+          "createdAt": "iso-date",
+          "updatedAt": "iso-date"
+        }
+      },
+      "errors": [400, 401, 403, 404, 500]
+    },
+    "PATCH /api/book-proposals/:proposalId": {
+      "auth": "required",
+      "body": {
+        "title": "string|null",
+        "author": "string|null",
+        "description": "string|null",
+        "coverImageUrl": "string|null",
+        "coverImageName": "string|null"
+      },
+      "successStatus": 200,
+      "response": {
+        "ok": true,
+        "status": 200,
+        "message": "Propozycja książki została zaktualizowana.",
+        "proposal": {
+          "id": "uuid",
+          "clubId": "uuid",
+          "title": "string",
+          "author": "string",
+          "description": "string",
+          "coverImageUrl": "string",
+          "coverImageName": "string",
+          "createdBy": "uuid",
+          "createdAt": "iso-date",
+          "updatedAt": "iso-date"
+        }
+      },
+      "errors": [400, 401, 403, 404, 500]
+    },
+    "DELETE /api/book-proposals/:proposalId": {
+      "auth": "required",
+      "successStatus": 200,
+      "response": {
+        "ok": true,
+        "status": 200,
+        "message": "Propozycja książki została usunięta.",
+        "proposalId": "uuid"
+      },
+      "errors": [400, 401, 403, 404, 500]
+    }
+  }
+}

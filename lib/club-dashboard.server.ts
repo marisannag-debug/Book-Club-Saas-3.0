@@ -28,11 +28,13 @@ function buildDemoVoting(): ClubDashboardVoting {
 
 function buildDemoMeeting(): ClubDashboardMeeting {
   return {
+    id: "demo-meeting",
     title: "Nadchodzące spotkanie",
     date: "24 maja 2026",
     time: "18:30",
     venue: "Biblioteka miejska, sala 2",
     summary: "Podgląd najbliższego spotkania, który później rozszerzymy o pełny scheduler.",
+    finalized: true,
   };
 }
 
@@ -40,7 +42,7 @@ function buildDemoInvite(id: string, isEmptyState: boolean): ClubDashboardInvite
   return {
     code: `${id.slice(0, 4).toUpperCase() || "BOOK"}-${Math.max(100, id.length * 17)}`,
     hint: isEmptyState
-      ? "Wygeneruj pierwsze zaproszenie, aby udostępnić klub przez link lub kod osobie, która ma dołączyć."
+      ? "W stage 10 dodamy zaproszenia linkiem"
       : "Wygeneruj link lub kod zaproszenia i przekaż go osobie, która ma dołączyć do klubu.",
     status: isEmptyState ? "Brak zaproszeń" : "Aktywne zaproszenia",
   };
@@ -91,14 +93,93 @@ export async function getClubDashboardById(id: string): Promise<ClubDashboardMod
     if (!error && data) {
       const fallback = buildFallbackClubDashboard(normalizedId);
       const memberCount = await getRealClubMemberCount(data.id, data.created_by);
+      const proposalsCount = await getRealProposalsCount(data.id);
 
-      return {
-        ...fallback,
-        id: data.id,
-        name: data.name,
-        description: data.description ?? fallback.description,
-        memberCount: memberCount ?? fallback.memberCount,
-      };
+      const activeVoting = fallback.activeVoting;
+      if (activeVoting && proposalsCount !== null) {
+        activeVoting.proposalsCount = proposalsCount;
+      }
+
+        // determine next meeting: prefer finalized meeting, else an open meeting (voting ongoing)
+        let nextMeeting = null;
+
+        try {
+          // try to find latest finalized meeting
+          const { data: finalized, error: finErr } = await supabase
+            .from("club_meetings")
+            .select("id, title, finalized_slot_id, finalized_at")
+            .eq("club_id", data.id)
+            .eq("status", "finalized")
+            .order("finalized_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (!finErr && finalized) {
+            // fetch slot details
+            const { data: slot, error: slotErr } = await supabase
+              .from("club_meeting_slots")
+              .select("start_at, end_at, label")
+              .eq("id", finalized.finalized_slot_id)
+              .maybeSingle();
+
+            if (!slot || slotErr) {
+              nextMeeting = {
+                id: finalized.id,
+                title: finalized.title ?? "Nadchodzące spotkanie",
+                date: new Date(finalized.finalized_at ?? new Date()).toLocaleDateString("pl-PL", { day: "2-digit", month: "long", year: "numeric" }),
+                time: slot?.start_at ? new Date(slot.start_at).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) : "-",
+                venue: "",
+                summary: finalized.title ?? "Zatwierdzony termin spotkania",
+                finalized: true,
+              };
+            } else {
+              nextMeeting = {
+                id: finalized.id,
+                title: finalized.title ?? (slot.label ?? "Nadchodzące spotkanie"),
+                date: new Date(slot.start_at).toLocaleDateString("pl-PL", { day: "2-digit", month: "long", year: "numeric" }),
+                time: new Date(slot.start_at).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }),
+                venue: "",
+                summary: slot.label ?? "Finalny termin spotkania",
+                finalized: true,
+              };
+            }
+          } else {
+            // if no finalized meeting, check for an open meeting (voting ongoing)
+            const { data: openMeeting, error: openErr } = await supabase
+              .from("club_meetings")
+              .select("id, title, created_at")
+              .eq("club_id", data.id)
+              .eq("status", "open")
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (!openErr && openMeeting) {
+              nextMeeting = {
+                id: openMeeting.id,
+                title: openMeeting.title ?? "Głosowanie na termin",
+                date: "",
+                time: "",
+                venue: "",
+                summary: "Członkowie głosują nad proponowanymi terminami.",
+                finalized: false,
+              };
+            }
+          }
+        } catch {
+          // ignore and fall back to demo model
+          nextMeeting = fallback.nextMeeting;
+        }
+
+        return {
+          ...fallback,
+          id: data.id,
+          name: data.name,
+          description: data.description ?? fallback.description,
+          memberCount: memberCount ?? fallback.memberCount,
+          activeVoting,
+          nextMeeting,
+        };
     }
   } catch {
     // Fall back to the local demo model when Supabase is unavailable.
@@ -126,4 +207,18 @@ async function getRealClubMemberCount(clubId: string, creatorId: string) {
   const hasCreator = activeMemberIds.has(creatorId);
 
   return activeMemberIds.size + (hasCreator ? 0 : 1);
+}
+
+async function getRealProposalsCount(clubId: string) {
+  const supabase = getSupabaseServerClient();
+  const { count, error } = await supabase
+    .from("book_proposals")
+    .select("*", { count: "exact", head: true })
+    .eq("club_id", clubId);
+
+  if (error) {
+    return null;
+  }
+
+  return count;
 }

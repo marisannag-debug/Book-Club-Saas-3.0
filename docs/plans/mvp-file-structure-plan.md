@@ -22,6 +22,7 @@ references:
   - docs/plans/PLAN_stage9_dolaczanie_do_klubu.md
   - docs/plans/PLAN_stage10_role_czlonek_i_prowadzacy.md
   - docs/plans/PLAN_stage11_brakujace_funkcje_czlonkostwa.md
+  - docs/plans/PLAN_stage14_propozycje_terminu_i_glosowanie_na_termin.md
 ---
 
 # MVP — Plan struktury plików i kolejności etapów
@@ -246,6 +247,8 @@ Frontend:
 
 Backend:
 - helpery terminów spotkań i głosowania na termin.
+
+Szczegółowy plan Stage 14: [docs/plans/PLAN_stage14_propozycje_terminu_i_glosowanie_na_termin.md](docs/plans/PLAN_stage14_propozycje_terminu_i_glosowanie_na_termin.md)
 
 ### 6.15 Stage 15 — Powiadomienia e-mail
 Frontend:

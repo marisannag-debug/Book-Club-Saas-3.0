@@ -46,6 +46,26 @@ type ClubMemberRow = {
   updated_at: string | null;
 };
 
+type BookProposalRow = {
+  id: string;
+  club_id: string;
+  title: string;
+  author: string;
+  description: string | null;
+  cover_image_url: string | null;
+  cover_image_name: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type VoteRow = {
+  id: string;
+  proposal_id: string;
+  user_id: string;
+  created_at: string;
+};
+
 export type SupabaseDatabase = {
   public: {
     Tables: {
@@ -67,6 +87,20 @@ export type SupabaseDatabase = {
               "id" | "joined_at" | "joined_via_invite_id" | "role" | "display_name" | "membership_status" | "updated_at"
             >
           >
+      >;
+      book_proposals: TableDefinition<
+        BookProposalRow,
+        Pick<BookProposalRow, "club_id" | "title" | "author" | "created_by"> &
+          Partial<
+            Pick<
+              BookProposalRow,
+              "id" | "description" | "cover_image_url" | "cover_image_name" | "created_at" | "updated_at"
+            >
+          >
+      >;
+      votes: TableDefinition<
+        VoteRow,
+        Pick<VoteRow, "proposal_id" | "user_id"> & Partial<Pick<VoteRow, "id" | "created_at">>
       >;
     };
     Views: Record<string, never>;

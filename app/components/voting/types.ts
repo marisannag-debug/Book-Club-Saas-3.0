@@ -23,4 +23,17 @@ export type BookProposal = {
   createdAt: string;
   updatedAt: string;
   canManage: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  votesCount?: number;
+  currentUserHasVoted?: boolean;
 };
+
+export type MeetingSlotDraft = {
+  date: string; // YYYY-MM-DD
+  time: string; // HH:mm
+  venue: string;
+  description: string;
+};
+
+export type MeetingSlotFieldErrors = Partial<Record<keyof MeetingSlotDraft, string>>;

@@ -1,0 +1,22 @@
+{
+  "feature": "meeting-polls",
+  "mode": "frontend-demo",
+  "storage": {
+    "type": "sessionStorage",
+    "keyPattern": "bookclub-pro:meeting-polls:{clubId}:{meetingId}"
+  },
+  "routes": {
+    "GET /club/:clubId/meetings/create": {
+      "ui": "meeting poll creation",
+      "input": ["title", "description?", "slotDrafts[]"],
+      "output": ["meetingId", "storedMeetingPreview"]
+    },
+    "GET /club/:clubId/meetings/:meetingId": {
+      "ui": "meeting poll detail",
+      "states": ["member preview", "host preview", "finalized"]
+    }
+  },
+  "meeting": {
+    "fields": ["id", "clubId", "clubName", "title", "description", "status", "slots", "currentUserRole", "currentUserVoteSlotId", "finalizedSlotId"]
+  }
+}

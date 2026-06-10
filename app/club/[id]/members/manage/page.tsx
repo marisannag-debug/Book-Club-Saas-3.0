@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ClubMembersRolesClient from "../../../../components/club/ClubMembersRolesClient";
+import ClubCurrentRoleCard from "../../../../components/club/ClubCurrentRoleCard";
 
 type ManageClubMembersPageProps = {
   params: Promise<{
@@ -38,13 +39,7 @@ export default async function ManageClubMembersPage({ params }: ManageClubMember
             </p>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Twoja rola</p>
-            <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">Wczytywanie...</p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Prowadzący mogą nadawać role, a członkowie widzą skład klubu w trybie podglądu.
-            </p>
-          </div>
+          <ClubCurrentRoleCard clubId={id} />
         </div>
       </header>
 
