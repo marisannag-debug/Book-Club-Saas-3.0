@@ -36,6 +36,10 @@ function buildProposal(overrides: Partial<BookProposal>): BookProposal {
     createdAt: overrides.createdAt ?? "21 maja 2026",
     updatedAt: overrides.updatedAt ?? "21 maja 2026",
     canManage: overrides.canManage ?? true,
+    canEdit: overrides.canEdit ?? true,
+    canDelete: overrides.canDelete ?? true,
+    votesCount: overrides.votesCount ?? 0,
+    currentUserHasVoted: overrides.currentUserHasVoted ?? false,
   };
 }
 
@@ -263,6 +267,65 @@ describe("ProposalList", () => {
     await waitFor(() => {
       expect(screen.getByText("Brak propozycji")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Dodaj pierwszą propozycję" })).toBeInTheDocument();
+    });
+  });
+
+  it("shows vote controls and toggles the local vote state", async () => {
+    mockFetch.mockResolvedValueOnce(
+      buildResponse({
+        ok: true,
+        status: 200,
+        clubId: "club-1",
+        items: [buildProposal({ id: "proposal-1", votesCount: 0, currentUserHasVoted: false })],
+      }),
+    );
+    mockFetch.mockResolvedValueOnce(
+      buildResponse({
+        ok: true,
+        status: 201,
+        message: "Głos został zapisany.",
+        proposalId: "proposal-1",
+      }),
+    );
+    mockFetch.mockResolvedValueOnce(
+      buildResponse({
+        ok: true,
+        status: 200,
+        clubId: "club-1",
+        items: [buildProposal({ id: "proposal-1", votesCount: 1, currentUserHasVoted: true })],
+      }),
+    );
+
+    render(<ProposalList clubId="club-1" clubName="Sunset Readers" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("0 głosów")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Głosuj na Normalni ludzie" })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Głosuj na Normalni ludzie" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("1 głos")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Cofnij głos dla Normalni ludzie" })).toBeInTheDocument();
+      expect(screen.getByText("Głos został zapisany.")).toBeInTheDocument();
+    });
+
+    expect(mockFetch).toHaveBeenNthCalledWith(2, "/api/votes", {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        Authorization: "Bearer access-token",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ proposalId: "proposal-1" }),
+    });
+
+    expect(mockFetch).toHaveBeenNthCalledWith(3, "/api/book-proposals?clubId=club-1", {
+      cache: "no-store",
+      headers: {
+        Authorization: "Bearer access-token",
+      },
     });
   });
 

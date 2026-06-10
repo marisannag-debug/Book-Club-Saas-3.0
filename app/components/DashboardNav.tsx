@@ -19,20 +19,6 @@ export default function DashboardNav({ clubs = [] }: DashboardNavProps) {
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Moje kluby</p>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Szybki dostęp do klubów</h2>
           </div>
-          <div className="flex flex-wrap gap-3 sm:justify-end">
-            <Link
-              href="/club/create"
-              className="inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950/20"
-            >
-              Utwórz nowy klub
-            </Link>
-            <Link
-              href="/club/join"
-              className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-slate-400 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-950/20"
-            >
-              Dołącz do klubu
-            </Link>
-          </div>
         </div>
 
         {clubs.length > 0 ? (

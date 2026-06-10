@@ -90,6 +90,13 @@ export type BookProposalViewModel = {
   updatedAt: string;
   canEdit: boolean;
   canDelete: boolean;
+  votesCount?: number;
+  currentUserHasVoted?: boolean;
+};
+
+export type BookProposalVoteState = {
+  votesCount?: number;
+  currentUserHasVoted?: boolean;
 };
 
 export function normalizeOptionalText(value?: string | null) {
@@ -113,6 +120,7 @@ export function mapBookProposalViewModel(
   },
   userId?: string,
   userRole?: "host" | "member" | null,
+  voteState?: BookProposalVoteState,
 ): BookProposalViewModel {
   const isOwner = userId === row.created_by;
   const isHost = userRole === "host";
@@ -139,5 +147,7 @@ export function mapBookProposalViewModel(
     updatedAt: formatDate(row.updated_at),
     canEdit: isOwner || isHost,
     canDelete: isOwner || isHost,
+    votesCount: voteState?.votesCount ?? 0,
+    currentUserHasVoted: voteState?.currentUserHasVoted ?? false,
   };
 }

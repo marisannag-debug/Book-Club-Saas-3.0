@@ -44,11 +44,9 @@ export default function ProposalForm({
       <div className="space-y-2">
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Nowa książka</p>
         <h3 className="text-2xl font-semibold tracking-tight text-slate-950">
-          {isEditing ? "Edytuj propozycję" : `Dodaj propozycję do ${clubName}`}
+          {isEditing ? "Edytuj propozycję" : "Dodaj propozycję"}
         </h3>
-        <p className="text-sm leading-6 text-slate-600">
-          Uzupełnij tytuł, autora i opcjonalny opis. Zmiany zapisują się lokalnie w tym widoku.
-        </p>
+        <p className="text-sm leading-6 text-slate-600">Uzupełnij tytuł, autora i opcjonalny opis.</p>
       </div>
 
       <div className="space-y-2">

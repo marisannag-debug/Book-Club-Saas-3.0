@@ -8,10 +8,10 @@ import {
   mapBookProposalViewModel,
   normalizeOptionalText,
   type BookProposalCreateInput,
-  type BookProposalListQuery,
   type BookProposalUpdateInput,
   type BookProposalViewModel,
 } from "../book-proposals";
+import { getProposalVoteSummaries } from "./votes";
 
 type SupabaseAuthResult = {
   data: {
@@ -337,11 +337,24 @@ export async function listBookProposals(clubId: string, accessToken: string): Pr
       throw new BookProposalError(400, "Nie udało się wczytać propozycji książek.");
     }
 
+    let voteSummaries;
+
+    try {
+      voteSummaries = await getProposalVoteSummaries(
+        (data as BookProposalRow[]).map((proposal) => proposal.id),
+        access.user.id,
+      );
+    } catch {
+      throw new BookProposalError(400, "Nie udało się wczytać głosów do propozycji książek.");
+    }
+
     return {
       ok: true,
       status: 200,
       clubId: access.club.id,
-      items: (data as BookProposalRow[]).map((row) => mapProposal(row, access.user.id, access.currentUserRole)),
+      items: (data as BookProposalRow[]).map((row) =>
+        mapBookProposalViewModel(row, access.user.id, access.currentUserRole, voteSummaries.get(row.id)),
+      ),
     };
   } catch (error) {
     return toErrorResult(error);

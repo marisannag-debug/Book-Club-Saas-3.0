@@ -7,11 +7,13 @@ export type ClubDashboardVoting = {
 };
 
 export type ClubDashboardMeeting = {
+  id?: string;
   title: string;
   date: string;
   time: string;
   venue: string;
   summary: string;
+  finalized?: boolean;
 };
 
 export type ClubDashboardInvite = {

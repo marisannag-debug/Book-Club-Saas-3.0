@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getSupabaseBrowserClient } from "../../../lib/supabase.browser";
 import ProposalCard from "./ProposalCard";
 import ProposalForm from "./ProposalForm";
@@ -16,6 +16,7 @@ type ProposalListProps = {
   clubName: string;
   initialProposals?: BookProposal[];
   userCanManageProposals?: boolean;
+  splitColumns?: boolean;
 };
 
 type ProposalsApiResponse =
@@ -57,6 +58,19 @@ type ProposalDeleteResponse =
       message: string;
     };
 
+type VoteMutationResponse =
+  | {
+      ok: true;
+      status: 200 | 201;
+      message: string;
+      proposalId: string;
+    }
+  | {
+      ok: false;
+      status: number;
+      message: string;
+    };
+
 const EMPTY_DRAFT: ProposalDraft = {
   title: "",
   author: "",
@@ -67,28 +81,6 @@ const EMPTY_DRAFT: ProposalDraft = {
 };
 
 const EMPTY_INITIAL_PROPOSALS: BookProposal[] = [];
-
-function createProposalId() {
-  return `proposal-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-}
-
-function fileToDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        resolve(reader.result);
-        return;
-      }
-
-      reject(new Error("Nie udało się wczytać grafiki okładki."));
-    };
-
-    reader.onerror = () => reject(new Error("Nie udało się wczytać grafiki okładki."));
-    reader.readAsDataURL(file);
-  });
-}
 
 function buildStatusMessage(action: "add" | "edit" | "delete" | "reset") {
   if (action === "add") {
@@ -101,6 +93,10 @@ function buildStatusMessage(action: "add" | "edit" | "delete" | "reset") {
 
   if (action === "delete") {
     return "Propozycja została usunięta z tej listy.";
+  }
+
+  if (action === "vote") {
+    return "Głos został zapisany lokalnie na tej karcie propozycji.";
   }
 
   return "Formularz został wyczyszczony.";
@@ -135,27 +131,11 @@ function getCountLabel(count: number) {
   return `${count} propozycje`;
 }
 
-function buildProposal(clubId: string, draft: ProposalDraft, canManage: boolean): BookProposal {
-  const timestamp = new Date().toLocaleDateString("pl-PL", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
-
+function normalizeProposalVotes(proposal: BookProposal): BookProposal {
   return {
-    id: createProposalId(),
-    title: draft.title.trim(),
-    author: draft.author.trim(),
-    coverImageUrl: draft.coverImagePreviewUrl.trim(),
-    coverImageName: draft.coverImageName.trim(),
-    description: draft.description.trim(),
-    createdBy: clubId,
-    createdByLabel: "Ty",
-    createdAt: timestamp,
-    updatedAt: timestamp,
-    canManage,
-    canEdit: canManage,
-    canDelete: canManage,
+    ...proposal,
+    votesCount: proposal.votesCount ?? 0,
+    currentUserHasVoted: proposal.currentUserHasVoted ?? false,
   };
 }
 
@@ -164,6 +144,7 @@ export default function ProposalList({
   clubName,
   initialProposals = EMPTY_INITIAL_PROPOSALS,
   userCanManageProposals = true,
+  splitColumns = false,
 }: ProposalListProps) {
   const [proposals, setProposals] = useState<BookProposal[]>(initialProposals);
   const [draft, setDraft] = useState<ProposalDraft>(EMPTY_DRAFT);
@@ -172,12 +153,31 @@ export default function ProposalList({
   const [editingProposalId, setEditingProposalId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [voteProposalId, setVoteProposalId] = useState<string | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const coverObjectUrlRef = useRef<string | null>(null);
   const isMountedRef = useRef(true);
+  const accessTokenRef = useRef<string | null>(null);
 
-  async function refreshProposals(options?: { showLoading?: boolean; message?: string }) {
+  const getAccessToken = useCallback(async () => {
+    if (accessTokenRef.current) {
+      return accessTokenRef.current;
+    }
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token ?? null;
+
+      accessTokenRef.current = token;
+
+      return token;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const refreshProposals = useCallback(async (options?: { showLoading?: boolean; message?: string }) => {
     if (options?.showLoading) {
       setIsLoading(true);
     }
@@ -191,7 +191,7 @@ export default function ProposalList({
         return false;
       }
 
-      setAccessToken(token);
+      accessTokenRef.current = token;
 
       if (!token) {
         setStatusMessage("Zaloguj się, aby zobaczyć propozycje książek.");
@@ -218,7 +218,7 @@ export default function ProposalList({
         return false;
       }
 
-      setProposals(payload.items);
+      setProposals(payload.items.map(normalizeProposalVotes));
       setStatusMessage(
         options?.message ??
           (payload.items.length > 0
@@ -239,66 +239,27 @@ export default function ProposalList({
         setIsLoading(false);
       }
     }
-  }
+  }, [clubId, getAccessToken, initialProposals]);
 
   useEffect(() => {
     isMountedRef.current = true;
 
-    void refreshProposals({ showLoading: true });
+    const timeoutId = window.setTimeout(() => {
+      void refreshProposals({ showLoading: true });
+    }, 0);
 
     return () => {
       isMountedRef.current = false;
+      window.clearTimeout(timeoutId);
 
       if (coverObjectUrlRef.current?.startsWith("blob:")) {
         URL.revokeObjectURL(coverObjectUrlRef.current);
       }
     };
-  }, [clubId, initialProposals]);
+  }, [refreshProposals]);
 
   const isEditing = editingProposalId !== null;
   const remainingCharacters = PROPOSAL_DESCRIPTION_MAX_LENGTH - draft.description.length;
-
-  async function getAccessToken() {
-    if (accessToken) {
-      return accessToken;
-    }
-
-    try {
-      const supabase = getSupabaseBrowserClient();
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token ?? null;
-
-      setAccessToken(token);
-
-      return token;
-    } catch {
-      return null;
-    }
-  }
-
-  function buildProposalPayload(overrides: Partial<ProposalDraft> = {}) {
-    return {
-      title: (overrides.title ?? draft.title).trim(),
-      author: (overrides.author ?? draft.author).trim(),
-      description: (overrides.description ?? draft.description).trim(),
-      coverImageUrl: (overrides.coverImagePreviewUrl ?? draft.coverImagePreviewUrl).trim(),
-      coverImageName: (overrides.coverImageName ?? draft.coverImageName).trim(),
-    };
-  }
-
-  async function uploadCoverIfNeeded() {
-    if (draft.coverImageFile) {
-      return {
-        coverImageUrl: await fileToDataUrl(draft.coverImageFile),
-        coverImageName: draft.coverImageFile.name,
-      };
-    }
-
-    return {
-      coverImageUrl: draft.coverImagePreviewUrl.trim(),
-      coverImageName: draft.coverImageName.trim(),
-    };
-  }
 
   function buildProposalFormData() {
     const formData = new FormData();
@@ -464,6 +425,74 @@ export default function ProposalList({
     titleInputRef.current?.focus();
   }
 
+  function handleToggleVote(proposalId: string) {
+    if (isSubmitting || isLoading || voteProposalId) {
+      return;
+    }
+
+    void (async () => {
+      const proposal = proposals.find((item) => item.id === proposalId);
+
+      if (!proposal) {
+        return;
+      }
+
+      const nextHasVoted = !proposal.currentUserHasVoted;
+
+      setVoteProposalId(proposalId);
+      setProposals((current) =>
+        current.map((currentProposal) => {
+          if (currentProposal.id !== proposalId) {
+            return currentProposal;
+          }
+
+          const currentUserHasVoted = currentProposal.currentUserHasVoted ?? false;
+          const nextVotesCount = Math.max(0, (currentProposal.votesCount ?? 0) + (currentUserHasVoted ? -1 : 1));
+
+          return {
+            ...currentProposal,
+            votesCount: nextVotesCount,
+            currentUserHasVoted: !currentUserHasVoted,
+          };
+        }),
+      );
+      setStatusMessage(nextHasVoted ? "Zapisujemy głos..." : "Usuwamy głos...");
+
+      try {
+        const token = await getAccessToken();
+
+        if (!token) {
+          setStatusMessage("Zaloguj się ponownie, aby głosować.");
+          await refreshProposals({ message: "Zaloguj się ponownie, aby głosować." });
+          return;
+        }
+
+        const response = await fetch("/api/votes", {
+          method: nextHasVoted ? "POST" : "DELETE",
+          cache: "no-store",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ proposalId }),
+        });
+
+        const payload = (await response.json()) as VoteMutationResponse;
+
+        if (!response.ok || !payload.ok) {
+          throw new Error(payload.message ?? "Nie udało się zapisać głosu.");
+        }
+
+        await refreshProposals({ message: payload.message });
+      } catch (error) {
+        setStatusMessage(error instanceof Error ? error.message : "Nie udało się zapisać głosu. Spróbuj ponownie.");
+        await refreshProposals({ message: "Nie udało się zapisać głosu. Spróbuj ponownie." });
+      } finally {
+        setVoteProposalId(null);
+      }
+    })();
+  }
+
   async function handleDelete(proposalId: string) {
     setIsSubmitting(true);
     setStatusMessage("Usuwamy propozycję...");
@@ -534,16 +563,12 @@ export default function ProposalList({
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-500">Stage 12</p>
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">Lista propozycji</h2>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">Lista propozycji i głosowanie</h2>
           </div>
           <span className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-600">
             {getCountLabel(proposals.length)}
           </span>
         </div>
-        <p className="text-sm leading-6 text-slate-600">
-          Ten widok działa lokalnie i pokazuje, jak będzie wyglądać etap zbierania propozycji książek dla klubu {clubName}.
-        </p>
       </div>
 
       {isLoading ? (
@@ -552,55 +577,130 @@ export default function ProposalList({
         </div>
       ) : null}
 
-      <ProposalForm
-        clubName={clubName}
-        draft={draft}
-        errors={errors}
-        statusMessage={statusMessage}
-        isEditing={isEditing}
-        isLoading={isLoading}
-        isSubmitting={isSubmitting}
-        charactersLeft={remainingCharacters}
-        titleInputRef={titleInputRef}
-        onChange={updateField}
-        onCoverSelect={handleCoverSelect}
-        onSubmit={handleSubmit}
-        onCancel={() => resetForm("Edycja została anulowana.")}
-        onClear={() => resetForm()}
-      />
+      {splitColumns ? (
+        <div className="mt-6 grid gap-6 sm:grid-cols-[minmax(0,20rem)_1fr] items-start">
+          <div className="w-full sm:max-w-[20rem]">
+            <div className="w-full space-y-4">
+              <ProposalForm
+                clubName={clubName}
+                draft={draft}
+                errors={errors}
+                statusMessage={statusMessage}
+                isEditing={isEditing}
+                isLoading={isLoading}
+                isSubmitting={isSubmitting}
+                charactersLeft={remainingCharacters}
+                titleInputRef={titleInputRef}
+                onChange={updateField}
+                onCoverSelect={handleCoverSelect}
+                onSubmit={handleSubmit}
+                onCancel={() => resetForm("Edycja została anulowana.")}
+                onClear={() => resetForm()}
+              />
 
-      <div className="space-y-4">
-        {proposals.length > 0 ? (
-          proposals.map((proposal) => (
-            <ProposalCard
-              key={proposal.id}
-              title={proposal.title}
-              author={proposal.author}
-              coverImageUrl={proposal.coverImageUrl}
-              coverImageName={proposal.coverImageName}
-              description={proposal.description}
-              createdByLabel={proposal.createdByLabel}
-              createdAt={proposal.createdAt}
-              updatedAt={proposal.updatedAt}
-              canManage={userCanManageProposals && (proposal.canManage || proposal.canEdit || proposal.canDelete)}
-              onEdit={() => startEdit(proposal)}
-              onDelete={() => handleDelete(proposal.id)}
-            />
-          ))
-        ) : (
-          <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm leading-6 text-slate-600">
-            <p className="font-semibold text-slate-900">Brak propozycji</p>
-            <p className="mt-2">Dodaj pierwszą książkę w formularzu po lewej stronie, aby rozpocząć listę do głosowania.</p>
-            <button
-              type="button"
-              onClick={() => titleInputRef.current?.focus()}
-              className="mt-4 inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950/20"
-            >
-              Dodaj pierwszą propozycję
-            </button>
+              
+            </div>
           </div>
-        )}
-      </div>
+
+          <div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {proposals.length > 0 ? (
+                proposals.map((proposal) => (
+                  <ProposalCard
+                    key={proposal.id}
+                    title={proposal.title}
+                    author={proposal.author}
+                    coverImageUrl={proposal.coverImageUrl}
+                    coverImageName={proposal.coverImageName}
+                    description={proposal.description}
+                    createdByLabel={proposal.createdByLabel}
+                    createdAt={proposal.createdAt}
+                    updatedAt={proposal.updatedAt}
+                    canManage={userCanManageProposals && (proposal.canManage || proposal.canEdit || proposal.canDelete)}
+                    votesCount={proposal.votesCount ?? 0}
+                    currentUserHasVoted={proposal.currentUserHasVoted ?? false}
+                    isVotePending={voteProposalId === proposal.id}
+                    onEdit={() => startEdit(proposal)}
+                    onDelete={() => handleDelete(proposal.id)}
+                    onVote={() => handleToggleVote(proposal.id)}
+                  />
+                ))
+              ) : (
+                <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm leading-6 text-slate-600">
+                  <p className="font-semibold text-slate-900">Brak propozycji</p>
+                  <p className="mt-2">Dodaj pierwszą książkę w formularzu po lewej stronie.</p>
+                  <button
+                    type="button"
+                    onClick={() => titleInputRef.current?.focus()}
+                    className="mt-4 inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950/20"
+                  >
+                    Dodaj pierwszą propozycję
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          <ProposalForm
+            clubName={clubName}
+            draft={draft}
+            errors={errors}
+            statusMessage={statusMessage}
+            isEditing={isEditing}
+            isLoading={isLoading}
+            isSubmitting={isSubmitting}
+            charactersLeft={remainingCharacters}
+            titleInputRef={titleInputRef}
+            onChange={updateField}
+            onCoverSelect={handleCoverSelect}
+            onSubmit={handleSubmit}
+            onCancel={() => resetForm("Edycja została anulowana.")}
+            onClear={() => resetForm()}
+          />
+          
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {proposals.length > 0 ? (
+              proposals.map((proposal) => (
+                <ProposalCard
+                  key={proposal.id}
+                  title={proposal.title}
+                  author={proposal.author}
+                  coverImageUrl={proposal.coverImageUrl}
+                  coverImageName={proposal.coverImageName}
+                  description={proposal.description}
+                  createdByLabel={proposal.createdByLabel}
+                  createdAt={proposal.createdAt}
+                  updatedAt={proposal.updatedAt}
+                  canManage={userCanManageProposals && (proposal.canManage || proposal.canEdit || proposal.canDelete)}
+                  votesCount={proposal.votesCount ?? 0}
+                  currentUserHasVoted={proposal.currentUserHasVoted ?? false}
+                  isVotePending={voteProposalId === proposal.id}
+                  onEdit={() => startEdit(proposal)}
+                  onDelete={() => handleDelete(proposal.id)}
+                  onVote={() => handleToggleVote(proposal.id)}
+                />
+              ))
+            ) : (
+              <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm leading-6 text-slate-600">
+                <p className="font-semibold text-slate-900">Brak propozycji</p>
+                <p className="mt-2">
+                  Dodaj pierwszą książkę w formularzu po lewej stronie, a potem zagłosuj na nią bez opuszczania tego ekranu.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => titleInputRef.current?.focus()}
+                  className="mt-4 inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950/20"
+                >
+                  Dodaj pierwszą propozycję
+                </button>
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       {!userCanManageProposals ? (
         <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm leading-6 text-amber-900">

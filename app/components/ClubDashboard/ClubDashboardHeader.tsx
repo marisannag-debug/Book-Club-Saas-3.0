@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ClubDashboardModel } from "./types";
 
 type ClubDashboardHeaderProps = {
-  club: Pick<ClubDashboardModel, "id" | "name" | "description" | "memberCount">;
+  club: ClubDashboardModel;
 };
 
 export default function ClubDashboardHeader({ club }: ClubDashboardHeaderProps) {
@@ -36,6 +36,7 @@ export default function ClubDashboardHeader({ club }: ClubDashboardHeaderProps) 
           <p className="mt-2 text-sm leading-6 text-slate-600">
             Ten ekran gromadzi aktywne głosowanie, najbliższe spotkanie i szybki skrót do zaproszeń.
           </p>
+          {/* Club invite code hidden from dashboard view per privacy request */}
         </div>
       </div>
     </header>

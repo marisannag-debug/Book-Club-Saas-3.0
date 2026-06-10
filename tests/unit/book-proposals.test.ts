@@ -26,6 +26,8 @@ const mockProposalUpdateSelect = vi.fn();
 const mockProposalUpdateSingle = vi.fn();
 const mockProposalDelete = vi.fn();
 const mockProposalDeleteEq = vi.fn();
+const mockVotesSelect = vi.fn();
+const mockVotesIn = vi.fn();
 
 vi.mock("@supabase/supabase-js", () => ({
   createClient: vi.fn(),
@@ -96,6 +98,14 @@ function buildServerClient() {
         };
       }
 
+      if (table === "votes") {
+        return {
+          select: () => ({
+            in: mockVotesIn,
+          }),
+        };
+      }
+
       return {};
     },
   };
@@ -127,6 +137,8 @@ beforeEach(() => {
   mockProposalUpdateSingle.mockReset();
   mockProposalDelete.mockClear();
   mockProposalDeleteEq.mockReset();
+  mockVotesSelect.mockClear();
+  mockVotesIn.mockReset();
 });
 
 describe("book proposal helper validation", () => {
@@ -193,6 +205,10 @@ describe("book proposal backend helpers", () => {
       ],
       error: null,
     });
+    mockVotesIn.mockResolvedValue({
+      data: [],
+      error: null,
+    });
 
     const result = await listBookProposals("club-id-1", "Bearer access-token");
 
@@ -203,6 +219,8 @@ describe("book proposal backend helpers", () => {
         id: "proposal-1",
         clubId: "club-id-1",
         title: "Normalni ludzie",
+        votesCount: 0,
+        currentUserHasVoted: false,
       });
     }
   });

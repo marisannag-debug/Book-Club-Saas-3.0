@@ -104,7 +104,6 @@ export default function MembersRoleManager({
             <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Członkowie</p>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Lista członków</h2>
           </div>
-          <MemberRoleBadge role={currentUserRole} />
         </div>
       </div>
 

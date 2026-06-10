@@ -59,6 +59,13 @@ type BookProposalRow = {
   updated_at: string;
 };
 
+type VoteRow = {
+  id: string;
+  proposal_id: string;
+  user_id: string;
+  created_at: string;
+};
+
 export type SupabaseDatabase = {
   public: {
     Tables: {
@@ -90,6 +97,10 @@ export type SupabaseDatabase = {
               "id" | "description" | "cover_image_url" | "cover_image_name" | "created_at" | "updated_at"
             >
           >
+      >;
+      votes: TableDefinition<
+        VoteRow,
+        Pick<VoteRow, "proposal_id" | "user_id"> & Partial<Pick<VoteRow, "id" | "created_at">>
       >;
     };
     Views: Record<string, never>;

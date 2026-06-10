@@ -31,9 +31,9 @@ export default function ClubDashboard({ club }: ClubDashboardProps) {
           description={
             club.activeVoting
               ? club.activeVoting.summary
-              : "W tym miejscu pojawi się głosowanie na książkę, gdy organizator je rozpocznie."
+              : "W tym miejscu pojawi się propozycja książek i głosowanie, gdy klub uruchomi etap wyboru lektury."
           }
-          emptyState="Nie ma jeszcze aktywnego głosowania. Ten blok przygotowuje miejsce na stage 12, kiedy dodamy pełny flow wyboru książki."
+          emptyState="Nie ma jeszcze aktywnego głosowania. Ten blok przygotowuje miejsce na stage 13, kiedy dodamy pełny flow wyboru książki."
           metrics={
             club.activeVoting
               ? [
@@ -44,12 +44,12 @@ export default function ClubDashboard({ club }: ClubDashboardProps) {
           }
           footer={
             <div className="flex flex-wrap items-center gap-3">
-              {club.activeVoting ? buildStageBadge("Stage 12") : buildStageBadge("W przygotowaniu")}
+              {club.activeVoting ? buildStageBadge("Stage 13") : buildStageBadge("W przygotowaniu")}
               <Link
-                href={`/club/${club.id}/voting/create`}
+                href={`/club/${club.id}/voting`}
                 className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-950/20"
               >
-                Propozycje książek
+                Propozycje i głosowanie
               </Link>
             </div>
           }
@@ -57,25 +57,41 @@ export default function ClubDashboard({ club }: ClubDashboardProps) {
 
         <ClubSummaryCard
           eyebrow="Next meeting"
-          title={club.nextMeeting ? club.nextMeeting.title : "Brak zaplanowanego spotkania"}
+          title={club.nextMeeting ? club.nextMeeting.title : "Wybór terminu spotkania"}
           status={club.nextMeeting ? "Ustalony termin" : "Stage 14"}
           description={
             club.nextMeeting
               ? club.nextMeeting.summary
-              : "Pusty stan przypomina, że harmonogram spotkań dojdzie w kolejnym kroku rozwoju produktu."
+              : "Tu pojawi się planer terminów spotkań oraz karta z finalnym terminem do szybkiego otwarcia."
           }
-          emptyState="Nie ma jeszcze zaplanowanego spotkania. W kolejnym etapie dołożymy pełny widok terminu, miejsca i agendy."
-          metrics={
-            club.nextMeeting
-              ? [
-                  { label: "Data", value: club.nextMeeting.date },
-                  { label: "Godzina", value: club.nextMeeting.time },
-                  { label: "Miejsce", value: club.nextMeeting.venue },
-                ]
-              : []
+          emptyState="Nie ma jeszcze zaplanowanego spotkania. Otwórz planer, aby dodać termin, głosować i zatwierdzić finalną datę."
+          metrics={club.nextMeeting && club.nextMeeting.finalized ? [
+              { label: "Data", value: club.nextMeeting.date },
+              { label: "Godzina", value: club.nextMeeting.time },
+              { label: "Miejsce", value: club.nextMeeting.venue },
+            ] : []}
+          footer={
+            <div className="flex flex-wrap items-center gap-3">
+              {club.nextMeeting ? buildStageBadge("Stage 14") : buildStageBadge("W przygotowaniu")}
+              <Link
+                href={
+                  club.nextMeeting?.id
+                    ? `/club/${club.id}/meetings/${club.nextMeeting.id}`
+                    : `/club/${club.id}/meetings/create`
+                }
+                className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-950/20"
+              >
+                {club.nextMeeting ? "Otwórz planer" : "Zaplanuj spotkanie"}
+              </Link>
+              {/* 'Nowy termin' button removed per request */}
+            </div>
           }
-          footer={club.nextMeeting ? buildStageBadge("Stage 14") : buildStageBadge("W przygotowaniu")}
         />
+
+        {/* Show summary message when voting for meeting time is ongoing */}
+        {club.nextMeeting && !club.nextMeeting.finalized ? (
+          <div className="mt-2 text-sm text-slate-700">Głosowanie na termin trwa</div>
+        ) : null}
 
         <ClubSummaryCard
           eyebrow="Invite members"
