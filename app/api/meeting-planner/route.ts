@@ -29,7 +29,15 @@ export async function POST(request: Request) {
     const meeting = await ensurePlannerMeetingForClub(payload.clubId, getAccessToken(request));
 
     return NextResponse.json({ ok: true, meeting }, { status: 200 });
-  } catch {
+  } catch (error) {
+    if (error instanceof Error) {
+      const status = Number((error as { status?: number }).status) || 500;
+      return NextResponse.json(
+        { ok: false, status, message: error.message || "Nie udało się wczytać planera spotkania." },
+        { status },
+      );
+    }
+
     return NextResponse.json({ ok: false, status: 500, message: "Nie udało się wczytać planera spotkania." }, { status: 500 });
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { MeetingPoll, MeetingPollRole, MeetingPollSlot, MeetingSlotDraft } from "./types";
 import { getSupabaseBrowserClient } from "../../../lib/supabase.browser";
 
@@ -66,6 +66,45 @@ export default function MeetingPlannerWorkspace({ clubId, clubName, initialMeeti
   const [isBusy, setIsBusy] = useState(false);
   const [isLoadingMeeting, setIsLoadingMeeting] = useState(!initialMeeting);
 
+  const initializePlannerMeeting = useCallback(async () => {
+    const token = await getAccessToken();
+
+    if (!token) {
+      setStatusMessage("Zaloguj się, aby otworzyć planer spotkania.");
+      setIsLoadingMeeting(false);
+      return;
+    }
+
+    const response = await fetch("/api/meeting-planner", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ clubId }),
+    });
+
+    const payload = (await response.json().catch(() => null)) as {
+      ok?: boolean;
+      message?: string;
+      meeting?: MeetingPoll;
+    } | null;
+
+    if (!response.ok || payload?.ok === false || !payload?.meeting) {
+      setStatusMessage(payload?.message ?? "Nie udało się wczytać planera spotkania.");
+      setIsLoadingMeeting(false);
+      return;
+    }
+
+    setMeeting(payload.meeting);
+    setStatusMessage(
+      payload.meeting.slots.length > 0
+        ? "Wczytano zapisane propozycje terminów z backendu."
+        : "Dodaj pierwszą propozycję terminu, a potem głosuj na najlepszą.",
+    );
+    setIsLoadingMeeting(false);
+  }, [clubId]);
+
   useEffect(() => {
     if (!isLoadingMeeting || meeting) {
       return;
@@ -74,52 +113,13 @@ export default function MeetingPlannerWorkspace({ clubId, clubName, initialMeeti
     let cancelled = false;
 
     async function loadPlannerMeeting() {
-      const token = await getAccessToken();
-
-        if (!token) {
-          if (!cancelled) {
-            setStatusMessage("Zaloguj się, aby otworzyć planer spotkania.");
-            setIsLoadingMeeting(false);
-          }
-          return;
-        }
-
       try {
-        const response = await fetch("/api/meeting-planner", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ clubId }),
-        });
-
-        const payload = (await response.json().catch(() => null)) as {
-          ok?: boolean;
-          message?: string;
-          meeting?: MeetingPoll;
-        } | null;
-
-        if (!response.ok || payload?.ok === false || !payload?.meeting) {
-          if (!cancelled) {
-            setStatusMessage(payload?.message ?? "Nie udało się wczytać planera spotkania.");
-            setIsLoadingMeeting(false);
-          }
-          return;
-        }
-
         if (!cancelled) {
-          setMeeting(payload.meeting);
-          setStatusMessage(
-            payload.meeting.slots.length > 0
-              ? "Wczytano zapisane propozycje terminów z backendu."
-              : "Dodaj pierwszą propozycję terminu, a potem głosuj na najlepszą.",
-          );
-          setIsLoadingMeeting(false);
+          await initializePlannerMeeting();
         }
-      } catch {
+      } catch (error) {
         if (!cancelled) {
-          setStatusMessage("Nie udało się połączyć z backendem.");
+          setStatusMessage(error instanceof Error ? error.message : "Nie udało się połączyć z backendem.");
           setIsLoadingMeeting(false);
         }
       }
@@ -130,7 +130,7 @@ export default function MeetingPlannerWorkspace({ clubId, clubName, initialMeeti
     return () => {
       cancelled = true;
     };
-  }, [clubId, isLoadingMeeting, meeting]);
+  }, [clubId, initializePlannerMeeting, isLoadingMeeting, meeting]);
 
   if (!meeting) {
     return (
@@ -140,6 +140,22 @@ export default function MeetingPlannerWorkspace({ clubId, clubName, initialMeeti
           {isLoadingMeeting ? "Ładowanie planera spotkania" : "Nie udało się wczytać planera spotkania"}
         </h2>
         <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">{statusMessage}</p>
+        {!isLoadingMeeting ? (
+          <button
+            type="button"
+            onClick={() => {
+              setIsLoadingMeeting(true);
+              setStatusMessage("Tworzenie planera spotkania...");
+              void initializePlannerMeeting().catch(() => {
+                setStatusMessage("Nie udało się połączyć z backendem.");
+                setIsLoadingMeeting(false);
+              });
+            }}
+            className="mt-6 inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950/20"
+          >
+            Utwórz planer spotkania
+          </button>
+        ) : null}
       </section>
     );
   }
