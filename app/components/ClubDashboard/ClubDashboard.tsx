@@ -88,11 +88,6 @@ export default function ClubDashboard({ club }: ClubDashboardProps) {
           }
         />
 
-        {/* Show summary message when voting for meeting time is ongoing */}
-        {club.nextMeeting && !club.nextMeeting.finalized ? (
-          <div className="mt-2 text-sm text-slate-700">Głosowanie na termin trwa</div>
-        ) : null}
-
         <ClubSummaryCard
           eyebrow="Invite members"
           title="Członkowie i zaproszenia"
