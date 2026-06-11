@@ -1,4 +1,5 @@
 import Link from "next/link";
+import MeetingPlannerWorkspace from "../../../../components/meetings/MeetingPlannerWorkspace";
 import MeetingPollWorkspace from "../../../../components/meetings/MeetingPollWorkspace";
 import { getClubDashboardById } from "../../../../../lib/club-dashboard.server";
 
@@ -13,18 +14,17 @@ export default async function ClubMeetingDetailPage({ params }: ClubMeetingDetai
   const { id, meetingId } = await params;
   const club = await getClubDashboardById(id);
   const isCreateMode = meetingId === "create" || meetingId === "new" || meetingId === "preview";
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(15,23,42,0.12),_transparent_32%),linear-gradient(180deg,#f8fafc_0%,#eef4ff_100%)] px-4 py-6 text-slate-900 sm:px-6 lg:px-8 lg:py-10">
       <div className="mx-auto max-w-6xl space-y-6">
         <section className="rounded-[2rem] border border-slate-200 bg-white/85 px-6 py-8 shadow-[0_18px_60px_-32px_rgba(15,23,42,0.35)] backdrop-blur sm:px-8 sm:py-10">
           <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-500">Stage 14 · szczegóły spotkania</p>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Podgląd ankiety terminu</h1>
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Planer terminu spotkania</h1>
           <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
-            {isCreateMode ? (
-              "Dodaj tytuł, opis i kilka propozycji terminu. Po zapisaniu ankieta będzie dostępna w widoku szczegółów oraz w lokalnym podglądzie spotkania."
-            ) : (
-              "Otwórz widok członka albo prowadzącego, sprawdź liczbę głosów i zatwierdź finalny termin bez wychodzenia z planera spotkania."
-            )}
+            {isCreateMode
+              ? "Dodawaj propozycje terminów pojedynczo i głosuj nad nimi bez wychodzenia z tej podstrony."
+              : "Otwórz widok członka albo prowadzącego, sprawdź liczbę głosów i zatwierdź finalny termin bez wychodzenia z planera spotkania."}
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
@@ -39,13 +39,17 @@ export default async function ClubMeetingDetailPage({ params }: ClubMeetingDetai
                 href={`/club/${club.id}/meetings/create`}
                 className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950/20"
               >
-                Utwórz nową ankietę
+                Utwórz nowy planer
               </Link>
             ) : null}
           </div>
         </section>
 
-        <MeetingPollWorkspace clubId={club.id} clubName={club.name} mode={isCreateMode ? "create" : "detail"} meetingId={meetingId} />
+        {isCreateMode ? (
+          <MeetingPlannerWorkspace clubId={club.id} clubName={club.name} initialMeeting={null} />
+        ) : (
+          <MeetingPollWorkspace clubId={club.id} clubName={club.name} mode="detail" meetingId={meetingId} />
+        )}
       </div>
     </main>
   );

@@ -25,9 +25,7 @@ export default function ClubDashboardHeader({ club }: ClubDashboardHeaderProps) 
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-500">Club dashboard</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">{club.name}</h1>
-          <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
-            {club.description}
-          </p>
+          <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">{club.description}</p>
         </div>
 
         <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
