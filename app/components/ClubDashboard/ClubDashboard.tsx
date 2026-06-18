@@ -8,14 +8,6 @@ type ClubDashboardProps = {
   club: ClubDashboardModel;
 };
 
-function buildStageBadge(stageLabel: string) {
-  return (
-    <span className="inline-flex items-center rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white">
-      {stageLabel}
-    </span>
-  );
-}
-
 export { buildClubDashboardMock };
 
 export default function ClubDashboard({ club }: ClubDashboardProps) {
@@ -25,9 +17,8 @@ export default function ClubDashboard({ club }: ClubDashboardProps) {
 
       <section aria-label="Podsumowanie klubu" className="grid gap-6 xl:grid-cols-3">
         <ClubSummaryCard
-          eyebrow="Aktywne voting"
+          eyebrow="Active voting"
           title={club.activeVoting ? club.activeVoting.title : "Brak aktywnego głosowania"}
-          status={club.activeVoting ? club.activeVoting.status : "Stage 12"}
           description={
             club.activeVoting
               ? club.activeVoting.summary
@@ -44,7 +35,6 @@ export default function ClubDashboard({ club }: ClubDashboardProps) {
           }
           footer={
             <div className="flex flex-wrap items-center gap-3">
-              {club.activeVoting ? buildStageBadge("Stage 13") : buildStageBadge("W przygotowaniu")}
               <Link
                 href={`/club/${club.id}/voting`}
                 className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-950/20"
@@ -58,7 +48,6 @@ export default function ClubDashboard({ club }: ClubDashboardProps) {
         <ClubSummaryCard
           eyebrow="Next meeting"
           title={club.nextMeeting ? club.nextMeeting.title : "Wybór terminu spotkania"}
-          status={club.nextMeeting ? "Ustalony termin" : "Stage 14"}
           description={
             club.nextMeeting
               ? club.nextMeeting.summary
@@ -72,7 +61,6 @@ export default function ClubDashboard({ club }: ClubDashboardProps) {
             ] : []}
           footer={
             <div className="flex flex-wrap items-center gap-3">
-              {club.nextMeeting ? buildStageBadge("Stage 14") : buildStageBadge("W przygotowaniu")}
               <Link
                 href={
                   club.nextMeeting?.id
@@ -91,7 +79,6 @@ export default function ClubDashboard({ club }: ClubDashboardProps) {
         <ClubSummaryCard
           eyebrow="Invite members"
           title="Członkowie i zaproszenia"
-          status={club.invite.status}
           description={club.invite.hint}
           metrics={[{ label: "Członkowie", value: `${club.memberCount}` }]}
           footer={
