@@ -39,6 +39,11 @@ CREATE TABLE IF NOT EXISTS club_meeting_slot_votes (
   CONSTRAINT unique_meeting_vote_per_user UNIQUE (meeting_id, user_id)
 );
 
+-- Table privileges (RLS still applies on top of these grants)
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE club_meetings TO authenticated, service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE club_meeting_slots TO authenticated, service_role;
+GRANT SELECT, INSERT, DELETE ON TABLE club_meeting_slot_votes TO authenticated, service_role;
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS club_meetings_club_id_idx ON club_meetings (club_id);
 CREATE INDEX IF NOT EXISTS club_meetings_created_by_idx ON club_meetings (created_by);

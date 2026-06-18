@@ -66,6 +66,40 @@ type VoteRow = {
   created_at: string;
 };
 
+type MeetingStatus = "draft" | "open" | "closed" | "finalized";
+
+type ClubMeetingRow = {
+  id: string;
+  club_id: string;
+  title: string;
+  description: string | null;
+  created_by: string;
+  status: MeetingStatus;
+  finalized_slot_id: string | null;
+  finalized_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type ClubMeetingSlotRow = {
+  id: string;
+  meeting_id: string;
+  start_at: string;
+  end_at: string | null;
+  label: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type ClubMeetingSlotVoteRow = {
+  id: string;
+  meeting_id: string;
+  slot_id: string;
+  user_id: string;
+  created_at: string;
+};
+
 export type SupabaseDatabase = {
   public: {
     Tables: {
@@ -101,6 +135,26 @@ export type SupabaseDatabase = {
       votes: TableDefinition<
         VoteRow,
         Pick<VoteRow, "proposal_id" | "user_id"> & Partial<Pick<VoteRow, "id" | "created_at">>
+      >;
+      club_meetings: TableDefinition<
+        ClubMeetingRow,
+        Pick<ClubMeetingRow, "club_id" | "title" | "created_by"> &
+          Partial<
+            Pick<
+              ClubMeetingRow,
+              "id" | "description" | "status" | "finalized_slot_id" | "finalized_at" | "created_at" | "updated_at"
+            >
+          >
+      >;
+      club_meeting_slots: TableDefinition<
+        ClubMeetingSlotRow,
+        Pick<ClubMeetingSlotRow, "meeting_id" | "start_at" | "created_by"> &
+          Partial<Pick<ClubMeetingSlotRow, "id" | "end_at" | "label" | "created_at" | "updated_at">>
+      >;
+      club_meeting_slot_votes: TableDefinition<
+        ClubMeetingSlotVoteRow,
+        Pick<ClubMeetingSlotVoteRow, "meeting_id" | "slot_id" | "user_id"> &
+          Partial<Pick<ClubMeetingSlotVoteRow, "id" | "created_at">>
       >;
     };
     Views: Record<string, never>;
