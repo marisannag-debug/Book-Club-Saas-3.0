@@ -34,7 +34,7 @@ export default async function MembershipActionsPage({ params }: MembershipAction
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.28em] text-slate-500">Członkostwo</p>
             <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
-              Brakujące funkcje członkostwa
+              Mój profil
             </h1>
             <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
               Zmień nazwę, zaakceptuj członkostwo albo opuść klub bez wychodzenia poza ten ekran.
