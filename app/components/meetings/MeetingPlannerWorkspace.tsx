@@ -227,12 +227,15 @@ export default function MeetingPlannerWorkspace({ clubId, clubName, initialMeeti
 
       const nextSlot = buildMeetingSlotFromDraft(meeting.slots, slotDraft, payload.slotId);
 
-      setMeeting((currentMeeting) => ({
-        ...currentMeeting,
-        status: "open",
-        updatedAtLabel: getTodayLabel(),
-        slots: [...currentMeeting.slots, nextSlot],
-      }));
+      setMeeting((currentMeeting) => {
+        if (!currentMeeting) return currentMeeting;
+        return {
+          ...currentMeeting,
+          status: "open",
+          updatedAtLabel: getTodayLabel(),
+          slots: [...currentMeeting.slots, nextSlot],
+        };
+      });
       resetDraft();
       setStatusMessage("Propozycja terminu została dodana. Możesz teraz głosować na tej samej stronie.");
     } catch {
@@ -289,22 +292,25 @@ export default function MeetingPlannerWorkspace({ clubId, clubName, initialMeeti
         return;
       }
 
-      setMeeting((currentMeeting) => ({
-        ...currentMeeting,
-        status: currentMeeting.status === "draft" ? "open" : currentMeeting.status,
-        updatedAtLabel: getTodayLabel(),
-        currentUserVoteSlotId: nextVoteId,
-        slots: currentMeeting.slots.map((slot) => {
-          const wasSelected = slot.id === previousVoteId;
-          const isSelected = slot.id === nextVoteId;
+      setMeeting((currentMeeting) => {
+        if (!currentMeeting) return currentMeeting;
+        return {
+          ...currentMeeting,
+          status: currentMeeting.status === "draft" ? "open" : currentMeeting.status,
+          updatedAtLabel: getTodayLabel(),
+          currentUserVoteSlotId: nextVoteId,
+          slots: currentMeeting.slots.map((slot) => {
+            const wasSelected = slot.id === previousVoteId;
+            const isSelected = slot.id === nextVoteId;
 
-          return {
-            ...slot,
-            votesCount: slot.votesCount + (isSelected ? 1 : 0) - (wasSelected ? 1 : 0),
-            currentUserHasVoted: isSelected,
-          };
-        }),
-      }));
+            return {
+              ...slot,
+              votesCount: slot.votesCount + (isSelected ? 1 : 0) - (wasSelected ? 1 : 0),
+              currentUserHasVoted: isSelected,
+            };
+          }),
+        };
+      });
 
       setStatusMessage(nextVoteId ? "Twój głos został zapisany w backendzie." : "Cofnięto głos w backendzie.");
     } catch {
@@ -357,6 +363,8 @@ export default function MeetingPlannerWorkspace({ clubId, clubName, initialMeeti
       }
 
       setMeeting((currentMeeting) => {
+        if (!currentMeeting) return currentMeeting;
+
         const nextSlots = currentMeeting.slots.filter((candidate) => candidate.id !== slotId);
         const removedCurrentVote = currentMeeting.currentUserVoteSlotId === slotId;
 
