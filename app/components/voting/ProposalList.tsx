@@ -82,7 +82,7 @@ const EMPTY_DRAFT: ProposalDraft = {
 
 const EMPTY_INITIAL_PROPOSALS: BookProposal[] = [];
 
-function buildStatusMessage(action: "add" | "edit" | "delete" | "reset") {
+function buildStatusMessage(action: "add" | "edit" | "delete" | "reset" | "vote") {
   if (action === "add") {
     return "Propozycja została dodana lokalnie do listy.";
   }
