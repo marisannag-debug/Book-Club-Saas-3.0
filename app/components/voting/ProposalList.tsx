@@ -212,7 +212,7 @@ export default function ProposalList({
         return false;
       }
 
-      if (!response.ok || !payload.ok) {
+      if (!payload.ok) {
         setStatusMessage(payload.message ?? "Nie udało się wczytać propozycji książek.");
         setProposals(initialProposals);
         return false;

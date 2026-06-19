@@ -116,11 +116,13 @@ export async function getClubDashboardById(id: string): Promise<ClubDashboardMod
 
           if (!finErr && finalized) {
             // fetch slot details
-            const { data: slot, error: slotErr } = await supabase
-              .from("club_meeting_slots")
-              .select("start_at, end_at, label")
-              .eq("id", finalized.finalized_slot_id)
-              .maybeSingle();
+            const { data: slot, error: slotErr } = finalized.finalized_slot_id
+              ? await supabase
+                  .from("club_meeting_slots")
+                  .select("start_at, end_at, label")
+                  .eq("id", finalized.finalized_slot_id)
+                  .maybeSingle()
+              : { data: null, error: null };
 
             if (!slot || slotErr) {
               nextMeeting = {
